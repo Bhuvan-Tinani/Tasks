@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>User Registration</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 6px;
+            width: 350px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .msg {
+            font-size: 13px;
+            margin-top: 4px;
+            color: red;
+        }
+
+        .back-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .back-container a {
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #007bff;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .back-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="back-container">
+        <a href="manage_user">
+            &laquo; Back
+        </a>
+    </div>
+
+    <div class="form-box">
+        <h2>Create User</h2>
+        {{ msg }}
+
+        <form method="post" action="add_user">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" type="text" name="username" required>
+                <div id="usernameMsg" class="msg"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" required>
+                <div id="passwordMsg" class="msg"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" required>
+                <div id="emailMsg" class="msg"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="fullname">Full Name</label>
+                <input id="fullname" type="text" name="fullname" required>
+            </div>
+
+            <div class="form-group">
+                <label for="note">Note</label>
+                <input id="note" type="text" name="note">
+            </div>
+
+            <button type="submit" id="submitBtn">Create</button>
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let usernameValid = false;
+            let emailValid = false;
+            let passwordValid = false;
+            function toggleSubmit() {
+                $("#submitBtn").prop(
+                    "disabled",
+                    !(usernameValid && emailValid && passwordValid)
+                );
+            }
+
+            $("#backToLoginBtn").on("click", function () {
+                window.location.href = "/";
+            });
+            $('input[name="username"]').on('keyup blur', function () {
+                let username = $(this).val().trim();
+
+                if (username.length < 4) {
+                    $("#usernameMsg").text("username must be 4 character or long");
+                    usernameValid = false;
+                    toggleSubmit();
+                    return;
+                }
+
+                $.ajax({
+                    url: "/api/check-username/",
+                    type: "GET",
+                    data: { username: username },
+                    success: function (response) {
+                        if (response.exists) {
+                            $("#usernameMsg").text("Username already exists").css("color", "red");
+                            usernameValid = false;
+                        } else {
+                            $("#usernameMsg").text("").css("color", "green");
+                            usernameValid = true;
+                        }
+                        toggleSubmit();
+                    }
+                });
+            });
+
+            $("#email").on("keyup blur", function () {
+                const email = $(this).val().trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (email === "") {
+                    $("#emailMsg").text("");
+                    emailValid = false;
+                    toggleSubmit();
+                    return;
+                }
+
+                if (!emailRegex.test(email)) {
+                    $("#emailMsg")
+                        .text("Invalid email format")
+                        .css("color", "red");
+                    emailValid = false;
+                    toggleSubmit();
+                    return;
+                }
+
+                $.ajax({
+                    url: "/api/check-email/",
+                    type: "GET",
+                    data: { email: email },
+                    success: function (response) {
+                        if (response.exists) {
+                            $("#emailMsg")
+                                .text("Email already exists")
+                                .css("color", "red");
+                            emailValid = false;
+                        } else {
+                            $("#emailMsg")
+                                .text("")
+                                .css("color", "green");
+                            emailValid = true;
+                        }
+                        toggleSubmit();
+                    }
+                });
+            });
+
+            $("#password").on("keyup blur", function () {
+                const password = $(this).val();
+
+                passwordValid =
+                    password.length >= 8 &&
+                    /[A-Z]/.test(password) &&
+                    /[a-z]/.test(password) &&
+                    /\d/.test(password) &&
+                    /[@$!%*?&]/.test(password);
+
+                if (passwordValid) {
+                    $("#passwordMsg").text("").css("color", "green");
+                } else {
+                    $("#passwordMsg")
+                        .text("Min 8 chars, uppercase, lowercase, number & special char")
+                        .css("color", "red");
+                }
+
+                toggleSubmit();
+            });
+
+            toggleSubmit();
+        });
+    </script>
+
+
+</body>
+
+</html>

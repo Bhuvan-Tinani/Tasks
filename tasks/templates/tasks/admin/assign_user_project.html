@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Assign Users</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 30px;
+        }
+
+        .back-container {
+            margin-bottom: 15px;
+        }
+
+        .back-container a {
+            text-decoration: none;
+            font-weight: 600;
+            color: #007bff;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .box {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+
+        .box h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+
+        .user-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-row:last-child {
+            border-bottom: none;
+        }
+
+        button {
+            border: none;
+            padding: 5px 10px;
+            font-size: 13px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .assign-btn {
+            background: #198754;
+            color: white;
+        }
+
+        .unassign-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .empty {
+            font-size: 13px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="back-container">
+        <a href="manage_project">← Back</a>
+    </div>
+
+    <div class="card">
+        <h2>Assign Users</h2>
+
+        {% if project %}
+        <p><strong>ID:</strong> {{ project.id }}</p>
+        <p><strong>Project:</strong> {{ project.title }}</p>
+        <p><strong>Description:</strong> {{ project.detail }}</p>
+        {% else %}
+        <p style="color:red;">Project not found</p>
+        {% endif %}
+
+        <div class="grid" id="userGrid">
+
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+
+            const projectId = "{{ project.id }}";
+
+            loadUsers();
+
+            function loadUsers() {
+                $.get(`/api/project/${projectId}/users/`, function (res) {
+
+                    if (res.error) {
+                        alert(res.error);
+                        return;
+                    }
+
+                    let html = `
+                <div class="box">
+                    <h3>Assigned Users</h3>
+            `;
+
+                    if (res.assigned_users.length === 0) {
+                        html += `<div class="empty">No users assigned</div>`;
+                    } else {
+                        res.assigned_users.forEach(u => {
+                            html += `
+                        <div class="user-row">
+                            <span>${u.username}</span>
+                            <button class="unassign-btn" data-user="${u.id}">
+                                Unassign
+                            </button>
+                        </div>
+                    `;
+                        });
+                    }
+
+                    html += `</div><div class="box">
+                        <h3>Available Users</h3>`;
+
+                    if (res.unassigned_users.length === 0) {
+                        html += `<div class="empty">All users assigned</div>`;
+                    } else {
+                        res.unassigned_users.forEach(u => {
+                            html += `
+                        <div class="user-row">
+                            <span>${u.username}</span>
+                            <button class="assign-btn" data-user="${u.id}">
+                                Assign
+                            </button>
+                        </div>
+                    `;
+                        });
+                    }
+
+                    html += `</div>`;
+
+                    $("#userGrid").html(html);
+                });
+            }
+
+            // Assign user
+            $(document).on("click", ".assign-btn", function () {
+                const userId = $(this).data("user");
+
+                $.post("/api/project/assign-user/", {
+                    project_id: projectId,
+                    user_id: userId,
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                }, function () {
+                    loadUsers();
+                });
+            });
+
+            // Unassign user
+            $(document).on("click", ".unassign-btn", function () {
+                const userId = $(this).data("user");
+
+                $.post("/api/project/unassign-user/", {
+                    project_id: projectId,
+                    user_id: userId,
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                }, function () {
+                    loadUsers();
+                });
+            });
+
+        });
+    </script>
+
+
+</body>
+
+</html>
