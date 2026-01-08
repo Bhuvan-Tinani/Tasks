@@ -1,4 +1,4 @@
-from datetime import timezone
+from django.utils import timezone
 import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -286,7 +286,7 @@ def unassign_user_from_project(request):
         })
     return JsonResponse({"message": "call appropriate method"}, status=403)
 
-def get_project_users(request, project_id):
+def get_project_users_admin(request, project_id):
     try:
         assigned_user_ids = Project_User.objects.filter(
             project_id=project_id
@@ -307,6 +307,7 @@ def get_project_users(request, project_id):
         })
 
     except Exception as e:
+        print(e)
         return JsonResponse({"error": str(e)}, status=400)
 
 
@@ -446,24 +447,22 @@ def update_task(request):
             return JsonResponse({"error": "Login required"}, status=401)
 
         session_user = Users.objects.get(id=user_id)
-        task_id=request.POST.get("task_id")
+        data = json.loads(request.body)
 
-        title = request.POST.get("title")
-        description = request.POST.get("description")
-        priority = request.POST.get("priority")
-        due_date = request.POST.get("due_date")
-        assigned_to_id = request.POST.get("assigned_to")
-        project_id = request.POST.get("project_id")
+        task_id = data.get("task_id")
+        title = data.get("title")
+        description = data.get("description")
+        priority = data.get("priority")
+        due_date = data.get("due_date")
+        assigned_to_id = data.get("assigned_to")
 
-        if not all([title, description, priority, due_date, project_id]):
+        if not all([title, description, priority, due_date]):
             return JsonResponse({"error": "All fields are required"}, status=400)
 
         assigned_to = None
         if assigned_to_id:
             assigned_to = get_object_or_404(Users, id=assigned_to_id)
-
-        project = get_object_or_404(Project, id=project_id)
-        
+            
         task=Task.objects.get(task_id=task_id)
         task.title=title
         task.description=description
@@ -479,6 +478,7 @@ def update_task(request):
         })
 
     except Exception as e:
+        print(e)
         return JsonResponse({"error": str(e)}, status=400)
     
 def manage_task(request):
@@ -497,6 +497,7 @@ def get_project_id_name(request):
 
     res=serializers.serialize("json", project)
     return JsonResponse({"projects": res})
+
 
 def get_project_detail(request, project_id):
     admin_id = request.session.get("user_id")
@@ -557,7 +558,6 @@ def get_project_users(request,project_id):
                 for user in users
             ]
         })
-
     except Project.DoesNotExist:
         return JsonResponse({"error": "user not found"}, status=404)
     
@@ -607,3 +607,45 @@ def admin_save_task(request):
             print(err)
             return JsonResponse({"error": str(err)}, status=404)
     return JsonResponse({"error": "method not allowed"}, status=404)
+
+
+def get_task_detail(request, task_id):
+    try:
+        task = Task.objects.get(task_id=task_id)
+
+        return JsonResponse({
+            "id": task.task_id,
+            "title": task.title,
+            "description": task.description,
+            "priority": task.priority,
+            "status": task.status,
+            "due_date": task.due_date.strftime("%Y-%m-%d"),
+            "assigned_to": task.assigned_to.id if task.assigned_to else None,
+            "assigned_to_name": task.assigned_to.full_name if task.assigned_to else None,
+            "project_id": task.project_id.id if task.project_id else None
+        }, status=200)
+
+    except Task.DoesNotExist:
+        return JsonResponse({"error": "Task not found"}, status=404)
+
+def task_next_state(request,task_id):
+    try:
+        status=('Todo','In Progress','Under Review','Done')
+        task=Task.objects.get(task_id=task_id)
+        current_task=task.status
+        status_index=status.index(current_task)
+        if status_index<len(status)-1:
+            task.status=status[status_index+1]
+            task.save()
+            return JsonResponse({"msg": "Task status updated"}, status=200)
+        return JsonResponse({"error": "Task cannot be updated"}, status=404)
+    except Exception as e:
+        print(e)
+        return  JsonResponse({"msg": "Task not found"}, status=200)
+
+def get_current_state(request,task_id):
+    try:
+        task=Task.objects.get(task_id=task_id)
+        return JsonResponse({"task status": task.status}, status=200)
+    except Task.DoesNotExist:
+        return JsonResponse({"msg": "Task not found"}, status=400)

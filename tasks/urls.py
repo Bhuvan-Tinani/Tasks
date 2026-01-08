@@ -30,7 +30,7 @@ urlpatterns = [
     path("api/check-username/", views.check_username, name="check_username"),
     path("api/check-email/", views.check_email, name="check_email"),
     path("admin/assign_users", views.assign_users, name="assign_users"),
-    path("api/project/<int:project_id>/users/",views.get_project_users),
+    path("api/project/<int:project_id>/users/",views.get_project_users_admin),
     path("api/project/assign-user/",views.assign_user_to_project,name="assign_user_to_project"),
     path("api/project/unassign-user/",views.unassign_user_from_project,name="unassign_user_from_project"),
     path("user/project_details",views.project_details,name="project_details"),
@@ -40,4 +40,6 @@ urlpatterns = [
     path("admin/project/api/get_project_detail/<int:project_id>/",views.get_project_detail,name="get_project_detail"),
     path("admin/project/api/get_project_userdetails/<int:project_id>/",views.get_project_users,name="get_project_users"),
     path("admin/task/api/create/",views.admin_save_task,name="admin_save_task"),
+    path("user/api/task/get_task_details/<int:task_id>/",views.get_task_detail,name="get_task_details"),
+    path("api/task/update/",views.update_task,name="update_task"),
 ]

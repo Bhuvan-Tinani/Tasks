@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Project Detail</title>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         .container {
             display: flex;
@@ -293,6 +293,190 @@
             color: #888;
             font-size: 14px;
         }
+
+        .current-user {
+            padding: 8px;
+            font-size: 14px;
+            color: #444;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .you-badge {
+            color: #198754;
+            font-weight: bold;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        .you-badge {
+            color: #198754;
+            font-weight: bold;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            margin-left: 6px;
+            cursor: pointer;
+            background: #0d6efd;
+            color: white;
+        }
+
+        .btn-sm:hover {
+            background: #0a58ca;
+        }
+
+        #editTaskModal .modal-content {
+            width: 380px;
+            margin-top: 5%;
+        }
+
+        .workflow-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .workflow-overlay.show {
+            display: block;
+        }
+
+        .workflow-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            width: 500px;
+            z-index: 1000;
+        }
+
+        .workflow-popup.show {
+            display: block;
+        }
+
+        .workflow-open-btn {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #FF9800;
+            color: white;
+        }
+
+        .workflow-open-btn:hover {
+            background: #F57C00;
+        }
+
+        .workflow-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #999;
+            padding: 0;
+            width: auto;
+        }
+
+        .workflow-close-btn:hover {
+            color: #333;
+        }
+
+        .workflow-popup h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .workflow-status-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .workflow-status-container::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 15%;
+            right: 15%;
+            height: 3px;
+            background: #ddd;
+            z-index: 0;
+        }
+
+        .workflow-status-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .workflow-status-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #ddd;
+            background: white;
+            color: #999;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .workflow-status-box.active .workflow-status-circle {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .workflow-next-btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #2196F3;
+            color: white;
+        }
+
+        .workflow-next-btn:hover {
+            background: #1976D2;
+        }
+
+        .workflow-next-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 
 </head>
@@ -300,6 +484,10 @@
 <body>
 
     <a href="../" class="back-btn">← Back</a>
+    <div class="current-user">
+        Logged in as: <strong>{{ request.session.username }}</strong>
+    </div>
+
 
 
     <div class="container">
@@ -315,7 +503,13 @@
                     {{ user.username|slice:":1"|upper }}
                 </div>
                 <div class="user-info">
-                    <div class="username">{{ user.username }}</div>
+                    <div class="username">
+                        {{ user.username }}
+                        {% if user.id == request.session.user_id %}
+                        <span class="you-badge">(You)</span>
+                        {% endif %}
+                    </div>
+
                     <div class="email">{{ user.email }}</div>
                 </div>
             </div>
@@ -341,6 +535,10 @@
                     <h3>Tasks</h3>
                     <button class="add-task-btn" title="Add Task">+</button>
                 </div>
+                <div>
+                    <button id="myTasksBtn" class="btn-sm">My Tasks</button>
+                    <button id="allTasksBtn" class="btn-sm">All Tasks</button>
+                </div>
 
                 <div class="workspace-body">
 
@@ -353,7 +551,9 @@
                                 <th>Assigned To</th>
                                 <th>Due Date</th>
                                 <th>Created by</th>
-                                <th>updated by</th>
+                                <th>Updated by</th>
+                                <th>Actions</th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -365,16 +565,38 @@
                                     {{ task.priority|title }}
                                 </td>
                                 <td>{{ task.status }}</td>
-                                <td>
+                                <td class="assigned-user">
                                     {% if task.assigned_to %}
+                                    {% if task.assigned_to.id == request.session.user_id %}
+                                    {{ task.assigned_to.full_name }} (You)
+                                    {% else %}
                                     {{ task.assigned_to.full_name }}
+                                    {% endif %}
                                     {% else %}
                                     -
                                     {% endif %}
                                 </td>
+
+
                                 <td>{{ task.due_date|date:"d M Y" }}</td>
                                 <td>{{ task.created_by.full_name }}</td>
                                 <td>{{ task.updated_by.full_name }}</td>
+                                <td>
+                                    {% if task.assigned_to.id == request.session.user_id %}
+                                    <button class="btn-edit" data-id="{{task.task_id}}">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+
+                                    <button class="status-btn" data-id="{{ task.task_id }}"><i
+                                            class="fa fa-eye"></i></button>
+                                    {% endif %}
+                                    <button class="btn">
+                                        <i class="fa fa-comment"></i>
+                                    </button>
+
+
+                                </td>
+
                             </tr>
                             {% endfor %}
                             {% else %}
@@ -396,7 +618,7 @@
     <div id="taskModal" class="modal">
         <div class="modal-content">
 
-            <span class="close" >&times;</span>
+            <span class="close">&times;</span>
 
             <h3>Add Task</h3>
 
@@ -445,6 +667,90 @@
         </div>
     </div>
 
+    <div id="editTaskModal" class="modal">
+        <div class="modal-content">
+
+            <span class="close edit-close">&times;</span>
+
+            <h3>Edit Task</h3>
+
+            <form id="editTaskForm">
+                <input type="hidden" name="task_id">
+
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status" required>
+                        <option value="Todo">Todo</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Done">Done</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select name="priority" required>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" name="due_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Assign To</label>
+                    <select name="assigned_to">
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <button type="submit" class="submit-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="workflow-overlay" id="overlay"></div>
+
+    <div class="workflow-popup" id="popup">
+        <button class="workflow-close-btn" id="closeBtn">&times;</button>
+        <h2>Workflow Status</h2>
+
+        <div class="workflow-status-container">
+            <div class="workflow-status-box active" id="status0">
+                <div class="workflow-status-circle">To-Do</div>
+            </div>
+            <div class="workflow-status-box" id="status1">
+                <div class="workflow-status-circle">In-Progress</div>
+            </div>
+            <div class="workflow-status-box" id="status2">
+                <div class="workflow-status-circle">Under-Review</div>
+            </div>
+            <div class="workflow-status-box" id="status3">
+                <div class="workflow-status-circle">Done</div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button class="workflow-next-btn" id="nextBtn" onclick="nextStatus()">Next</button>
+        </div>
+    </div>
 
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -500,6 +806,135 @@
                 });
             });
 
+            $("#myTasksBtn").on("click", function () {
+                const userId = "{{ request.session.user_id }}";
+                $("table tbody tr").each(function () {
+                    const assignedTo = $(this).find("td:nth-child(4)").text();
+                    if (assignedTo.includes("(You)")) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            $("#allTasksBtn").on("click", function () {
+                $("table tbody tr").show();
+            });
+
+            const userId = "{{ request.session.user_id }}";
+
+            $("#myTasksBtn").on("click", function () {
+                $("tbody tr").each(function () {
+                    const assigned = $(this).find(".assigned-user").text();
+                    if (assigned.includes("(You)")) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            $("#allTasksBtn").on("click", function () {
+                $("tbody tr").show();
+            });
+
+            $(document).on("click", ".btn-edit", function () {
+                // modal.show();
+                const taskId = $(this).data("id");
+                $.get("/tasks/user/api/task/get_task_details/" + taskId + "/", function (res) {
+                    console.log(res);
+
+                    const form = $("#editTaskForm");
+
+                    form.find("input[name=task_id]").val(res.id);
+                    form.find("input[name=title]").val(res.title);
+                    form.find("textarea[name=description]").val(res.description);
+                    form.find("select[name=status]").val(res.status);
+                    form.find("select[name=priority]").val(res.priority);
+                    form.find("input[name=due_date]").val(res.due_date);
+                    form.find("select[name=assigned_to]").val(res.assigned_to ?? "");
+
+                    openEditModal()
+                });
+            });
+
+            $(".edit-close").on("click", function () {
+                closeEditModal();
+            });
+
+            const editModal = $("#editTaskModal");
+            const editForm = $("#editTaskForm");
+
+            function openEditModal() {
+                editModal.show();
+            }
+
+            function closeEditModal() {
+                editModal.hide();
+                editForm[0].reset();
+            }
+
+            $("#editTaskForm").on("submit", function (e) {
+                e.preventDefault();
+
+                const modal = $("#editTaskModal");
+
+                const payload = {
+                    task_id: modal.find("input[name=task_id]").val(),
+                    title: modal.find("input[name=title]").val(),
+                    description: modal.find("textarea[name=description]").val(),
+                    priority: modal.find("select[name=priority]").val(),
+                    due_date: modal.find("input[name=due_date]").val(),
+                    assigned_to: modal.find("select[name=assigned_to]").val()
+                };
+
+
+
+
+                $.ajax({
+                    url: "/tasks/api/task/update/",
+                    type: "POST",
+                    data: JSON.stringify(payload),
+                    contentType: "application/json",
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                    success: function (res) {
+                        alert("Task updated");
+                        closeEditModal();
+                        location.reload();
+                    },
+                    error: function (err) {
+                        alert("Update failed");
+                    }
+                });
+            });
+
+            let current = 0;
+            const total = 4;
+
+            // Open popup
+            $('.status-btn').click(function () {
+                $('#popup').addClass('show');
+                $('#overlay').addClass('show');
+            });
+
+            // Close popup
+            $('#closeBtn, #overlay').click(function () {
+                $('#popup').removeClass('show');
+                $('#overlay').removeClass('show');
+            });
+
+            function nextStatus() {
+                if (current < total - 1) {
+                    $('#status' + current).removeClass('active');
+                    current++;
+                    $('#status' + current).addClass('active');
+
+                    if (current === total - 1) {
+                        $('#nextBtn').prop('disabled', true).text('Completed!');
+                    }
+                }
+            }
         });
     </script>
 </body>
