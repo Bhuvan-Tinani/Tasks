@@ -374,7 +374,7 @@
                                 </td>
                                 <td>{{ task.due_date|date:"d M Y" }}</td>
                                 <td>{{ task.created_by.full_name }}</td>
-                                 <td>{{ task.updated_by.full_name }}</td>
+                                <td>{{ task.updated_by.full_name }}</td>
                             </tr>
                             {% endfor %}
                             {% else %}
@@ -396,7 +396,7 @@
     <div id="taskModal" class="modal">
         <div class="modal-content">
 
-            <span class="close" onclick="closeTaskModal()">&times;</span>
+            <span class="close" >&times;</span>
 
             <h3>Add Task</h3>
 
@@ -429,8 +429,7 @@
 
                 <div class="form-group">
                     <label>Assign To</label>
-                    <select name="assigned_to" required></select>>
-                        <option value="">Select user</option>
+                    <select name="assigned_to" required>
                         {% for user in users %}
                         <option value="{{ user.id }}">{{ user.username }}</option>
                         {% endfor %}
@@ -447,8 +446,6 @@
     </div>
 
 
-    </div>
-    </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>

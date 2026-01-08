@@ -35,5 +35,9 @@ urlpatterns = [
     path("api/project/unassign-user/",views.unassign_user_from_project,name="unassign_user_from_project"),
     path("user/project_details",views.project_details,name="project_details"),
     path("user/api/task/create/",views.create_task,name="create_task"),
-    path("admin/manage_task",views.manage_project,name="manage_task"),
+    path("admin/manage_task",views.manage_task,name="manage_task"),
+    path("admin/project/api/get_projects/",views.get_project_id_name,name="get_projects"),
+    path("admin/project/api/get_project_detail/<int:project_id>/",views.get_project_detail,name="get_project_detail"),
+    path("admin/project/api/get_project_userdetails/<int:project_id>/",views.get_project_users,name="get_project_users"),
+    path("admin/task/api/create/",views.admin_save_task,name="admin_save_task"),
 ]

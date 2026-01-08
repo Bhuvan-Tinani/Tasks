@@ -1,5 +1,537 @@
-<html>
-    <body>
-        manage task
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Project Dashboard</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .projects,
+        .card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .projects ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .projects li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .projects li:hover {
+            background: #f0f0f0;
+        }
+
+        .right-section {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 10px;
+        }
+
+        .second-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-task-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #198754;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .add-task-btn:hover {
+            background: #146c43;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1f1;
+        }
+
+        .back-btn {
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 10px;
+            color: #555;
+        }
+
+        .back-btn:hover {
+            color: #000;
+        }
+
+        #projectList li {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        #projectList li.active {
+            background-color: #e6c2f2;
+            color: #4a0072;
+            font-weight: bold;
+        }
+
+        #projectList li:hover {
+            background-color: #FFFAFA;
+        }
+
+        .user-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .user-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .user-list li:hover {
+            background: #f6f6f6;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #6c5ce7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #222;
+        }
+
+        .user-secondary {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background: #ffffff;
+            margin: 8% auto;
+            padding: 20px;
+            width: 360px;
+            border-radius: 6px;
+            position: relative;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .close {
+            position: absolute;
+            right: 12px;
+            top: 8px;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 7px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #198754;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #198754;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #146c43;
+        }
+    </style>
+
+</head>
+
+<body>
+
+
+    <div class="dashboard">
+
+
+        <!-- Project List -->
+
+        <div class="projects">
+            <a href="/tasks/admin" class="back-btn">&#8592;</a>
+
+
+            <h3>Projects</h3>
+            <ul id="projectList"></ul>
+
+        </div>
+
+        <!-- Right Section -->
+        <div class="right-section">
+
+            <!-- Project Info -->
+            <div class="card">
+                <h3>Project Info</h3>
+                <p><strong>Title:</strong> <span id="projectName"></span></p>
+                <p><strong>Description:</strong> <span id="projectStatus"></span></p>
+                <p><strong>Created by:</strong> <span id="projectDeadline"></span></p>
+            </div>
+
+            <div class="second-row">
+
+                <div class="card">
+                    <h3>Assigned Users</h3>
+                    <ul id="userList" class="user-list"></ul>
+                </div>
+
+                <!-- Tasks -->
+                <div class="card">
+                    <div class="task-header">
+                        <h3>Tasks</h3>
+                        <button class="add-task-btn" title="Add Task">+</button>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Task Id</th>
+                                <th>Task</th>
+                                <th>Assignee</th>
+                                <th>Status</th>
+                                <th>priority</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskTable"></tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Add Task -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+
+            <span class="close">&times;</span>
+
+            <h3>Add Task</h3>
+
+            <form id="taskForm">
+
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select name="priority" required>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="text" id="datepicker" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Assign To</label>
+                    <select name="assigned_to" required>
+                        <option value=""></option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    Create Task
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            let currentProjectId = null;
+
+            $(function () {
+                $("#datepicker").datepicker({
+                    minDate: 0,
+                    dateFormat: "yy-mm-dd"   // Important for backend
+                });
+            });
+
+            $.ajax({
+                url: "/tasks/admin/project/api/get_projects/",
+                type: "GET",
+                dataType: "json",
+                success: function (response) {
+
+                    const projectData = JSON.parse(response.projects);
+                    const $projectList = $("#projectList").empty();
+
+                    $.each(projectData, function (_, item) {
+
+                        const $li = $("<li>")
+                            .text(item.fields.title)
+                            .attr("data-id", item.pk)
+                            .appendTo($projectList);
+
+                        $li.on("click", function () {
+                            $("#projectList li").removeClass("active");
+                            $(this).addClass("active");
+                            const projectId = $(this).data("id");
+                            currentProjectId = projectId;
+                            getProjectDetail(projectId)
+                        });
+                    });
+                    $("#projectList li:first").addClass("active");
+                    getProjectDetail(projectData[0].pk);
+                    currentProjectId = projectData[0].pk;
+
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.status, xhr.responseText);
+                }
+            });
+
+            function getProjectDetail(project_id) {
+                $.ajax({
+                    url: "/tasks/admin/project/api/get_project_detail/" + project_id + "/",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (response) {
+                        setProjectUsers(response)
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.status, xhr.responseText);
+                    }
+                });
+            }
+
+            function setProjectUsers(response) {
+                $("#projectName").text(response.title);
+                $("#projectStatus").text(response.detail);
+                $("#projectDeadline").text(response.created_by);
+
+                $("#userList").empty();
+                response.users.forEach(u => {
+                    $("#userList").append(`<li>${u.full_name}</li>`);
+                });
+                $("#taskTable").empty();
+                response.tasks.forEach(t => {
+                    $("#taskTable").append(`
+                        <tr>
+                            <td>${t.id}</td>
+                            <td>${t.title}</td>
+                            <td>${t.assigned_to ?? '-'}</td>
+                            <td>${t.status}</td>
+                            <td>${t.priority}</td>
+                            <td>${t.due_date}</td>
+                        </tr>
+                    `);
+                });
+
+
+            }
+
+            const modal = $("#taskModal");
+            const taskForm = $("#taskForm");
+
+            $(".add-task-btn").on("click", function () {
+                if (!currentProjectId) return alert("Select a project first!");
+
+                modal.show();
+                $.ajax({
+                    url: "/tasks/admin/project/api/get_project_userdetails/" + currentProjectId + "/",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (response) {
+                        const $dropdown = $("select[name='assigned_to']");
+                        $dropdown.empty();
+                        $dropdown.append(`<option value="">-- Select User --</option>`);
+
+                        response.users.forEach(u => {
+                            $dropdown.append(`
+                            <option value="${u.id}">${u.full_name}</option>
+                        `);
+                        });
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.status, xhr.responseText);
+                    }
+                });
+            });
+
+            modal.find(".close").on("click", function () {
+                closeModal();
+            });
+
+            function closeModal() {
+                modal.hide();
+                taskForm[0].reset();
+            }
+
+            taskForm.on("submit", function (e) {
+                e.preventDefault();
+
+                const payload = {
+                    title: taskForm.find("[name='title']").val(),
+                    description: taskForm.find("[name='description']").val(),
+                    priority: taskForm.find("[name='priority']").val(),
+                    due_date: $('#datepicker').val(),
+                    assigned_to: taskForm.find("[name='assigned_to']").val(),
+                    project_id: currentProjectId
+                };
+                
+                $.ajax({
+                    url: "/tasks/admin/task/api/create/",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(payload),
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                    success: function (res) {
+                        console.log(res);
+                        
+                        closeModal();          // close modal only
+                        getProjectDetail(currentProjectId);   // reload table only
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.status, xhr.responseText);
+                    }
+                });
+
+            });
+
+        });
+
+
+    </script>
+
+
+</body>
+
 </html>

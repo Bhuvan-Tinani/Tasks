@@ -1,4 +1,5 @@
 from datetime import timezone
+import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
@@ -8,7 +9,7 @@ from tasks.models.Project import Project
 from tasks.models.Role import Role
 from tasks.models.Users import Users
 from tasks.serailizers import ProjectSerializer
-from django.views.decorators.http import require_POST
+from django.core import serializers
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset=Project.objects.all()
@@ -482,3 +483,127 @@ def update_task(request):
     
 def manage_task(request):
     return render(request,"tasks/admin/manage_task.html")
+
+def get_project_id_name(request):
+    admin_id = request.session.get("user_id")
+    if not admin_id:
+        return JsonResponse({"error": "Not logged in"}, status=401)
+
+    admin = Users.objects.get(id=admin_id)
+    if admin.role.name != "admin":
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    project=Project.objects.only('id', 'title')
+
+    res=serializers.serialize("json", project)
+    return JsonResponse({"projects": res})
+
+def get_project_detail(request, project_id):
+    admin_id = request.session.get("user_id")
+
+    if not admin_id:
+        return JsonResponse({"error": "Not logged in"}, status=401)
+
+    admin = Users.objects.get(id=admin_id)
+
+    if admin.role.name != "admin":
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    try:
+        project = Project.objects.get(id=project_id)
+        users=project_users(project)
+        tasks = Task.objects.filter(project_id=project)
+
+        return JsonResponse({
+            "id": project.id,
+            "title": project.title,
+            "detail": project.detail,
+            "created_by": project.created_by.username if project.created_by else None,
+            "created_at": project.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "users": [
+                {
+                    "id": user.id,
+                    "full_name": user.full_name
+                }
+                for user in users
+            ],
+            "tasks": [
+                {
+                    "id": t.task_id,
+                    "title": t.title,
+                    "priority": t.priority,
+                    "status": t.status,
+                    "assigned_to": t.assigned_to.full_name if t.assigned_to else None,
+                    "due_date": t.due_date.strftime("%Y-%m-%d")
+                }
+                for t in tasks
+            ]
+        })
+
+    except Project.DoesNotExist:
+        return JsonResponse({"error": "Project not found"}, status=404)
+    
+def get_project_users(request,project_id):
+    try:
+        project = Project.objects.get(id=project_id)
+        users=project_users(project)
+
+        return JsonResponse({
+            "users": [
+                {
+                    "id": user.id,
+                    "full_name": user.full_name
+                }
+                for user in users
+            ]
+        })
+
+    except Project.DoesNotExist:
+        return JsonResponse({"error": "user not found"}, status=404)
+    
+def admin_save_task(request):
+    if request.method=="POST":
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+
+            user_id = request.session.get("user_id")
+            session_user = Users.objects.get(id=user_id)
+
+            title = data.get("title")
+            description = data.get("description")
+            priority = data.get("priority")
+            due_date = data.get("due_date")
+            assigned_to_id = data.get("assigned_to")
+            project_id = data.get("project_id")
+
+
+            if not all([title, description, priority, due_date, project_id]):
+                return JsonResponse({"error": "All fields are required"}, status=400)
+
+            assigned_to = None
+            if assigned_to_id:
+                assigned_to = get_object_or_404(Users, id=assigned_to_id)
+
+            project = get_object_or_404(Project, id=project_id)
+
+            task = Task.objects.create(
+                title=title,
+                description=description,
+                priority=priority,
+                due_date=due_date,
+                status="Todo",              
+                assigned_to=assigned_to,    
+                created_by=session_user,    
+                updated_by=session_user,    
+                project_id=project          
+            )
+
+            return JsonResponse({
+                "message": "Task created successfully",
+                "task_id": task.task_id
+            })
+
+        except Exception as err:
+            print(err)
+            return JsonResponse({"error": str(err)}, status=404)
+    return JsonResponse({"error": "method not allowed"}, status=404)
