@@ -1,8 +1,9 @@
+from datetime import timezone
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
-from tasks.models import Project_User
+from tasks.models import Project_User, Task
 from tasks.models.Project import Project
 from tasks.models.Role import Role
 from tasks.models.Users import Users
@@ -50,6 +51,7 @@ def login(request):
             request.session["user_id"]=user.id
             request.session["username"]=user.username
             request.session["role"]=user.role.name
+            request.session["email"]=user.email
             if user.role.name == "admin":
                 response = redirect("tasks:admin")
                 response.set_cookie(
@@ -117,7 +119,9 @@ def register_user(request):
 
 def user_dashboard(request):
     if request.session.get("role") == "user":
-        return render(request,"tasks/user/dashboard.html")
+        user_id=request.session.get("user_id")
+        project=Project.objects.filter(project_user__user_id=user_id).distinct()
+        return render(request,"tasks/user/dashboard.html",{"projects":project})
     return render(request,"tasks/index.html")
 
 def manage_user(request):
@@ -283,12 +287,6 @@ def unassign_user_from_project(request):
 
 def get_project_users(request, project_id):
     try:
-        admin_id = request.session.get("user_id")
-        admin = Users.objects.get(id=admin_id)
-
-        if admin.role.name != "admin":
-            return JsonResponse({"error": "Unauthorized"}, status=403)
-
         assigned_user_ids = Project_User.objects.filter(
             project_id=project_id
         ).values_list("user_id", flat=True)
@@ -376,3 +374,111 @@ def unassign_user_from_project(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+    
+def project_users(project):
+    users = Users.objects.filter(
+            project_user__project_id=project.id
+        ).distinct()
+    return users
+
+def project_details(request):
+    project_id=request.GET.get("project_id")
+    try:
+        project=Project.objects.get(id=project_id)
+        users=project_users(project)
+        tasks = Task.objects.filter(
+            project_id=project
+        ).select_related("assigned_to")
+        return render(request,"tasks/user/project_details.html",{"project":project,"users":users,"tasks": tasks})
+    except Exception as err:
+        print(err)
+    return redirect("tasks:user")
+
+def create_task(request):
+    try:
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return JsonResponse({"error": "Login required"}, status=401)
+
+        session_user = Users.objects.get(id=user_id)
+
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        priority = request.POST.get("priority")
+        due_date = request.POST.get("due_date")
+        assigned_to_id = request.POST.get("assigned_to")
+        project_id = request.POST.get("project_id")
+
+        if not all([title, description, priority, due_date, project_id]):
+            return JsonResponse({"error": "All fields are required"}, status=400)
+
+        assigned_to = None
+        if assigned_to_id:
+            assigned_to = get_object_or_404(Users, id=assigned_to_id)
+
+        project = get_object_or_404(Project, id=project_id)
+
+        task = Task.objects.create(
+            title=title,
+            description=description,
+            priority=priority,
+            due_date=due_date,
+            status="Todo",              
+            assigned_to=assigned_to,    
+            created_by=session_user,    
+            updated_by=session_user,    
+            project_id=project          
+        )
+
+        return JsonResponse({
+            "message": "Task created successfully",
+            "task_id": task.task_id
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+    
+def update_task(request):
+    try:
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return JsonResponse({"error": "Login required"}, status=401)
+
+        session_user = Users.objects.get(id=user_id)
+        task_id=request.POST.get("task_id")
+
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        priority = request.POST.get("priority")
+        due_date = request.POST.get("due_date")
+        assigned_to_id = request.POST.get("assigned_to")
+        project_id = request.POST.get("project_id")
+
+        if not all([title, description, priority, due_date, project_id]):
+            return JsonResponse({"error": "All fields are required"}, status=400)
+
+        assigned_to = None
+        if assigned_to_id:
+            assigned_to = get_object_or_404(Users, id=assigned_to_id)
+
+        project = get_object_or_404(Project, id=project_id)
+        
+        task=Task.objects.get(task_id=task_id)
+        task.title=title
+        task.description=description
+        task.priority=priority
+        task.assigned_to=assigned_to
+        task.updated_by=session_user
+        task.updated_at=timezone.now()
+        task.save()
+
+        return JsonResponse({
+            "message": "Task updated    successfully",
+            "task_id": task.task_id
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+    
+def manage_task(request):
+    return render(request,"tasks/admin/manage_task.html")

@@ -33,5 +33,7 @@ urlpatterns = [
     path("api/project/<int:project_id>/users/",views.get_project_users),
     path("api/project/assign-user/",views.assign_user_to_project,name="assign_user_to_project"),
     path("api/project/unassign-user/",views.unassign_user_from_project,name="unassign_user_from_project"),
-
+    path("user/project_details",views.project_details,name="project_details"),
+    path("user/api/task/create/",views.create_task,name="create_task"),
+    path("admin/manage_task",views.manage_project,name="manage_task"),
 ]

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Project Detail</title>
+
+    <style>
+        .container {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .user-list {
+            width: 260px;
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .project-info {
+            background: #ffffff;
+            padding: 12px 14px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            font-size: 13px;
+        }
+
+        .project-info h3 {
+            margin: 0 0 6px 0;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .project-info p {
+            margin: 4px 0;
+            color: #555;
+            word-wrap: break-word;
+        }
+
+        .workspace {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            min-height: 200px;
+
+        }
+
+        .user-list {
+            width: 260px;
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-list h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            background: #f8f9fa;
+            transition: background 0.2s;
+        }
+
+        .user-card:hover {
+            background: #e9ecef;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #0d6efd;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            overflow: hidden;
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .email {
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .empty {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+        }
+
+        .workspace {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            min-height: 200px;
+        }
+
+        .workspace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .workspace-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .add-task-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #198754;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .add-task-btn:hover {
+            background: #146c43;
+        }
+
+        .workspace-body {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background: #ffffff;
+            margin: 8% auto;
+            padding: 20px;
+            width: 360px;
+            border-radius: 6px;
+            position: relative;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .close {
+            position: absolute;
+            right: 12px;
+            top: 8px;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 7px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #198754;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #198754;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #146c43;
+        }
+
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .task-table th,
+        .task-table td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        .task-table th {
+            background: #f1f3f5;
+            font-weight: 600;
+        }
+
+        .task-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .task-table tr:hover {
+            background: #f1f7ff;
+        }
+
+        .priority.high {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .priority.medium {
+            color: #fd7e14;
+            font-weight: 600;
+        }
+
+        .priority.low {
+            color: #198754;
+            font-weight: 600;
+        }
+
+        .empty {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <a href="../" class="back-btn">← Back</a>
+
+
+    <div class="container">
+
+        <!-- Left users -->
+        <div class="user-list">
+            <h3>Assigned Users</h3>
+
+            {% if users %}
+            {% for user in users %}
+            <div class="user-card">
+                <div class="avatar">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+                <div class="user-info">
+                    <div class="username">{{ user.username }}</div>
+                    <div class="email">{{ user.email }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty">No users assigned</div>
+            {% endif %}
+        </div>
+
+
+        <div class="content">
+
+            <div class="project-info">
+                <h3>Project details</h3>
+                <h3 title="{{ project.title }}">{{ project.title }}</h3>
+                <p><strong>ID:</strong> {{ project.id }}</p>
+                <p><strong>Description:</strong> {{ project.detail }}</p>
+            </div>
+
+            <div class="workspace">
+
+                <div class="workspace-header">
+                    <h3>Tasks</h3>
+                    <button class="add-task-btn" title="Add Task">+</button>
+                </div>
+
+                <div class="workspace-body">
+
+                    <table class="task-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Assigned To</th>
+                                <th>Due Date</th>
+                                <th>Created by</th>
+                                <th>updated by</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if tasks %}
+                            {% for task in tasks %}
+                            <tr>
+                                <td>{{ task.title }}</td>
+                                <td class="priority {{ task.priority }}">
+                                    {{ task.priority|title }}
+                                </td>
+                                <td>{{ task.status }}</td>
+                                <td>
+                                    {% if task.assigned_to %}
+                                    {{ task.assigned_to.full_name }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>{{ task.due_date|date:"d M Y" }}</td>
+                                <td>{{ task.created_by.full_name }}</td>
+                                 <td>{{ task.updated_by.full_name }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="empty">
+                                    No tasks created yet
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    <!-- Add Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+
+            <span class="close" onclick="closeTaskModal()">&times;</span>
+
+            <h3>Add Task</h3>
+
+            <form id="taskForm">
+                <input type="hidden" name="project_id" value="{{ project.id }}">
+
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select name="priority" required>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" name="due_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Assign To</label>
+                    <select name="assigned_to" required></select>>
+                        <option value="">Select user</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    Create Task
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            const modal = $("#taskModal");
+            const taskForm = $("#taskForm");
+
+            $(".add-task-btn").on("click", function () {
+                modal.show();
+            });
+
+            modal.find(".close").on("click", function () {
+                closeModal();
+            });
+
+            $(window).on("click", function (e) {
+                if ($(e.target).is(modal)) {
+                    closeModal();
+                }
+            });
+
+            function closeModal() {
+                modal.hide();
+                taskForm[0].reset();
+            }
+
+            taskForm.on("submit", function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: "/user/api/task/create/",
+                    type: "POST",
+                    data: new FormData(this),
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    success: function (res) {
+                        if (res.error) {
+                            alert(res.error);
+                        } else {
+                            alert("Task created successfully");
+                            closeModal();
+                            location.reload()
+                        }
+                    },
+                    error: function () {
+                        alert("Something went wrong");
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+
+</html>

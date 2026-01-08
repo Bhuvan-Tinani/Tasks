@@ -24,7 +24,7 @@ class Task(models.Model):
             ('Low', 'low')
         )
     )
-    due_date = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
 
     assigned_to = models.ForeignKey(
         Users,
@@ -42,7 +42,14 @@ class Task(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # use auto_now for updates
+    updated_by=models.ForeignKey(
+        Users,
+         on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='last_updated'
+    )
+    updated_at = models.DateTimeField(auto_now=True) 
     project_id = models.ForeignKey(
         Project,
         on_delete=models.SET_NULL,
