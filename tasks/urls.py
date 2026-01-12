@@ -42,4 +42,9 @@ urlpatterns = [
     path("admin/task/api/create/",views.admin_save_task,name="admin_save_task"),
     path("user/api/task/get_task_details/<int:task_id>/",views.get_task_detail,name="get_task_details"),
     path("api/task/update/",views.update_task,name="update_task"),
+    path("api/task/get-status/<int:task_id>/",views.get_task_current_state,name="get-status"),
+    path("api/task/update-task/<int:task_id>/",views.task_next_state,name="task_next_state"),
+    path("api/project/<int:project_id>/tasks/", views.get_project_tasks),
+    path("api/comment/add-comment/",views.add_comment),
+    path("api/comments/get-comments/<int:task_id>/",views.get_comments),
 ]

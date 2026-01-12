@@ -5,11 +5,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from tasks.models import Project_User, Task
+from tasks.models.Activity_Log import Activity_Log
+from tasks.models.Comments import Comments
 from tasks.models.Project import Project
 from tasks.models.Role import Role
 from tasks.models.Users import Users
 from tasks.serailizers import ProjectSerializer
 from django.core import serializers
+from django.core.paginator import Paginator
+from django.db.models import Case, When, IntegerField, ExpressionWrapper, F
+from django.utils.timezone import now
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset=Project.objects.all()
@@ -431,6 +436,23 @@ def create_task(request):
             updated_by=session_user,    
             project_id=project          
         )
+        
+        Activity_Log.objects.create(
+            task=task,
+            action="Task Created",
+            old_value=None,
+            new_value=f"Task '{title}' created",
+            user=session_user
+        )
+
+        if assigned_to:
+            Activity_Log.objects.create(
+                task=task,
+                action="Assigned",
+                old_value=None,
+                new_value=f"Assigned to {assigned_to.full_name}",
+                user=session_user
+            )
 
         return JsonResponse({
             "message": "Task created successfully",
@@ -438,6 +460,7 @@ def create_task(request):
         })
 
     except Exception as e:
+        print(e)
         return JsonResponse({"error": str(e)}, status=400)
     
 def update_task(request):
@@ -462,19 +485,56 @@ def update_task(request):
         assigned_to = None
         if assigned_to_id:
             assigned_to = get_object_or_404(Users, id=assigned_to_id)
-            
-        task=Task.objects.get(task_id=task_id)
-        task.title=title
-        task.description=description
-        task.priority=priority
-        task.assigned_to=assigned_to
-        task.updated_by=session_user
-        task.updated_at=timezone.now()
+
+        task = Task.objects.get(task_id=task_id)
+
+        old_title = task.title
+        old_description = task.description
+        old_priority = task.priority
+        old_due_date = task.due_date
+        old_assigned_to = task.assigned_to.full_name if task.assigned_to else None
+
+        task.title = title
+        task.description = description
+        task.priority = priority
+        task.due_date = due_date
+        task.assigned_to = assigned_to
+        task.updated_by = session_user
+        task.updated_at = timezone.now()
         task.save()
 
+        changes = []
+
+        if old_title != title:
+            changes.append(("title", old_title, title))
+
+        if old_description != description:
+            changes.append(("description", old_description, description))
+
+        if old_priority != priority:
+            changes.append(("priority", old_priority, priority))
+
+        if old_due_date.strftime("%Y-%m-%d") != due_date:
+            changes.append(("due_date", old_due_date.strftime("%Y-%m-%d"), due_date))
+
+        new_assigned = assigned_to.full_name if assigned_to else None
+        if old_assigned_to != new_assigned:
+            changes.append(("assigned_to", old_assigned_to, new_assigned))
+
+        # ---- STEP 4: Save each change to activity log ----
+        for field, old, new in changes:
+            Activity_Log.objects.create(
+                task=task,
+                user=session_user,
+                action=f"Updated {field}",
+                old_value=old,
+                new_value=new,
+            )
+
         return JsonResponse({
-            "message": "Task updated    successfully",
-            "task_id": task.task_id
+            "message": "Task updated successfully",
+            "task_id": task.task_id,
+            "changes_logged": len(changes)
         })
 
     except Exception as e:
@@ -561,8 +621,10 @@ def get_project_users(request,project_id):
     except Project.DoesNotExist:
         return JsonResponse({"error": "user not found"}, status=404)
     
+from tasks.models.Activity_Log import Activity_Log
+
 def admin_save_task(request):
-    if request.method=="POST":
+    if request.method == "POST":
         try:
             data = json.loads(request.body.decode("utf-8"))
 
@@ -575,7 +637,6 @@ def admin_save_task(request):
             due_date = data.get("due_date")
             assigned_to_id = data.get("assigned_to")
             project_id = data.get("project_id")
-
 
             if not all([title, description, priority, due_date, project_id]):
                 return JsonResponse({"error": "All fields are required"}, status=400)
@@ -591,12 +652,31 @@ def admin_save_task(request):
                 description=description,
                 priority=priority,
                 due_date=due_date,
-                status="Todo",              
-                assigned_to=assigned_to,    
-                created_by=session_user,    
-                updated_by=session_user,    
-                project_id=project          
+                status="Todo",
+                assigned_to=assigned_to,
+                created_by=session_user,
+                updated_by=session_user,
+                project_id=project
             )
+
+            # 🔻 Log activity
+            Activity_Log.objects.create(
+                task=task,
+                user=session_user,
+                action="Task Created",
+                old_value=None,
+                new_value=f"Task '{title}' created"
+            )
+
+            # 🔻 If assigned to someone else, log assignment too
+            if assigned_to and assigned_to != session_user:
+                Activity_Log.objects.create(
+                    task=task,
+                    user=session_user,
+                    action="Assigned",
+                    old_value=None,
+                    new_value=f"Assigned to {assigned_to.full_name}"
+                )
 
             return JsonResponse({
                 "message": "Task created successfully",
@@ -605,8 +685,10 @@ def admin_save_task(request):
 
         except Exception as err:
             print(err)
-            return JsonResponse({"error": str(err)}, status=404)
-    return JsonResponse({"error": "method not allowed"}, status=404)
+            return JsonResponse({"error": str(err)}, status=400)
+
+    return JsonResponse({"error": "method not allowed"}, status=405)
+
 
 
 def get_task_detail(request, task_id):
@@ -628,24 +710,204 @@ def get_task_detail(request, task_id):
     except Task.DoesNotExist:
         return JsonResponse({"error": "Task not found"}, status=404)
 
-def task_next_state(request,task_id):
+def task_next_state(request, task_id):
     try:
-        status=('Todo','In Progress','Under Review','Done')
-        task=Task.objects.get(task_id=task_id)
-        current_task=task.status
-        status_index=status.index(current_task)
-        if status_index<len(status)-1:
-            task.status=status[status_index+1]
-            task.save()
-            return JsonResponse({"msg": "Task status updated"}, status=200)
-        return JsonResponse({"error": "Task cannot be updated"}, status=404)
-    except Exception as e:
-        print(e)
-        return  JsonResponse({"msg": "Task not found"}, status=200)
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return JsonResponse({"error": "Login required"}, status=401)
 
-def get_current_state(request,task_id):
+        user = Users.objects.get(id=user_id)
+
+        STATUS_FLOW = ('Todo', 'In Progress', 'Under Review', 'Done')
+
+        task = Task.objects.get(task_id=task_id)
+        old_state = task.status
+
+        if old_state not in STATUS_FLOW:
+            return JsonResponse({"error": "Invalid task status"}, status=400)
+
+        current_index = STATUS_FLOW.index(old_state)
+
+        if current_index == len(STATUS_FLOW) - 1:
+            return JsonResponse({
+                "message": "Task is already completed",
+                "status": old_state,
+                "completed": True
+            })
+
+        new_state = STATUS_FLOW[current_index + 1]
+
+        task.status = new_state
+        task.updated_by = user
+        task.updated_at = timezone.now()
+        task.save()
+
+        Activity_Log.objects.create(
+            task=task,
+            user=user,
+            action="Status Changed",
+            old_value=old_state,
+            new_value=new_state,
+        )
+
+        return JsonResponse({
+            "message": "Task status updated",
+            "old": old_state,
+            "new": new_state,
+            "completed": False
+        })
+ 
+    except Task.DoesNotExist:
+        return JsonResponse({"error": "Task not found"}, status=404)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+def get_task_current_state(request,task_id):
     try:
         task=Task.objects.get(task_id=task_id)
-        return JsonResponse({"task status": task.status}, status=200)
+        return JsonResponse({"task_status": task.status}, status=200)
     except Task.DoesNotExist:
         return JsonResponse({"msg": "Task not found"}, status=400)
+
+def get_project_tasks(request, project_id):
+    try:
+        page = int(request.GET.get("page", 1))
+        limit = int(request.GET.get("limit", 10))
+
+        tasks = Task.objects.filter(project_id=project_id).select_related(
+            "assigned_to", "created_by", "updated_by", "project_id"
+        )
+        # for task in tasks:
+        #     print(task.due_date,current_time)
+        #     print(current_time<=task.due_date)
+
+        # # Optional filters
+        # status = request.GET.get("status")
+        # priority = request.GET.get("priority")
+        # assigned_to = request.GET.get("assigned_to")
+
+        # if status:
+        #     tasks = tasks.filter(status=status)
+        # if priority:
+        #     tasks = tasks.filter(priority=priority)
+        # if assigned_to:
+        #     tasks = tasks.filter(assigned_to_id=assigned_to)
+
+        # # ---- SORT & OVERDUE CALC ----
+        today = timezone.localdate()
+
+        tasks = tasks.annotate(
+            status_order=Case(
+                When(status="Todo", then=1),
+                When(status="In Progress", then=2),
+                When(status="Under Review", then=3),
+                When(status="Done", then=4),
+                default=99,
+                output_field=IntegerField()
+            ),
+            priority_order=Case(
+                When(priority="high", then=1),
+                When(priority="medium", then=2),
+                When(priority="low", then=3),
+                default=99,
+                output_field=IntegerField()
+            )
+        ).order_by("priority_order", "due_date")
+
+        paginator = Paginator(tasks, limit)
+        page_obj = paginator.get_page(page)
+
+        result = []
+
+        for task in page_obj:
+            due = task.due_date.date()
+            overdue_days = (today - due).days if due < today and task.status != "Done" else 0
+
+            result.append({
+                "task_id": task.task_id,
+                "title": task.title,
+                "status": task.status,
+                "priority": task.priority,
+                "due_date": task.due_date.strftime("%Y-%m-%d"),
+                "assigned_to": task.assigned_to.full_name if task.assigned_to else None,
+                "created_by": task.created_by.full_name if task.created_by else None,
+                "updated_by": task.updated_by.full_name if task.updated_by else None,
+                "project": task.project_id.title,
+                "created_at": task.created_at.strftime("%Y-%m-%d %H:%M"),
+                "assigned_to_id": task.assigned_to.id if task.assigned_to else None,
+                "overdue_days": overdue_days,
+                "is_overdue": overdue_days > 0
+            })  
+
+
+        return JsonResponse({
+            "project_id": project_id,
+            "page": page,
+            "limit": limit,
+            "total_tasks": paginator.count,
+            "total_pages": paginator.num_pages,
+            "has_next": page_obj.has_next(),
+            "has_previous": page_obj.has_previous(),
+            "tasks": result
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+def add_comment(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    try:
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return JsonResponse({"error": "Login required"}, status=401)
+
+        user = Users.objects.get(id=user_id)
+        payload = json.loads(request.body.decode("utf-8"))
+        task_id = payload.get("task_id")
+        comment_text = payload.get("comment")
+
+        if not task_id or not comment_text.strip():
+            return JsonResponse({"error": "Invalid data"}, status=400)
+
+        task = Task.objects.get(task_id=task_id)
+        comment = Comments.objects.create(
+            comment=comment_text,
+            task=task,
+            user=user
+        )
+
+        return JsonResponse({
+            "message": "Comment added",
+            "comment": {
+                "id": comment.id,
+                "text": comment.comment,
+                "user": user.full_name,
+                "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M")
+            }
+        })
+    except Exception as e:
+        print(e)
+        return JsonResponse({"error": str(e)}, status=400)
+
+def get_comments(request, task_id):
+    try:
+        comments = Comments.objects.filter(task_id=task_id).select_related("user") \
+                                  .order_by("created_at")   # oldest first
+
+        data = [{
+            "id": c.id,
+            "comment": c.comment,
+            "user": c.user.full_name,
+            "user_id": c.user.id,
+            "created_at": c.created_at.strftime("%Y-%m-%d %H:%M")
+        } for c in comments]
+        print(data)
+
+        return JsonResponse({"comments": data})
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)

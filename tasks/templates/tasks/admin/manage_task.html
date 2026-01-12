@@ -379,7 +379,7 @@
             $(function () {
                 $("#datepicker").datepicker({
                     minDate: 0,
-                    dateFormat: "yy-mm-dd"   // Important for backend
+                    dateFormat: "yy-mm-dd"   
                 });
             });
 
@@ -516,8 +516,8 @@
                     success: function (res) {
                         console.log(res);
                         
-                        closeModal();          // close modal only
-                        getProjectDetail(currentProjectId);   // reload table only
+                        closeModal();          
+                        getProjectDetail(currentProjectId);   
                     },
                     error: function (xhr, status, error) {
                         console.error(xhr.status, xhr.responseText);
