@@ -5,100 +5,730 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .left-section {
+            flex: 0 0 25%;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .middle-divider {
+            flex: 0 0 auto;
+            width: 80px;
+            height: 100%;
+            background: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            border-left: 2px solid #e8e8e8;
+            border-right: 2px solid #e8e8e8;
+        }
+
+        .medkart-symbol {
+            font-size: 60px;
+            color: #1976D2;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .right-section {
+            flex: 0 0 75%;
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 40px;
+            color: white;
         }
 
         .login-box {
             background: #fff;
-            padding: 25px;
-            width: 300px;
-            border-radius: 6px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 35px;
+            width: 100%;
+            max-width: 350px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f0f0f0;
+        }
+
+        .right-section .login-box {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
         }
 
         h2 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            color: #1976D2;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .right-section h2 {
+            color: #1565C0;
         }
 
         input {
             width: 100%;
-            padding: 8px;
-            margin: 8px 0;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #e8e8e8;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #1976D2;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
         }
 
         button {
             width: 100%;
-            padding: 8px;
-            margin: 10px;
-            background: #007bff;
+            padding: 12px;
+            margin: 12px 0;
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
             color: #fff;
             border: none;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
         }
 
         button:hover {
-            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .right-section button {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+
+        .right-section button:hover {
+            transform: translateY(-2px);
+        }
+
+        .field-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+        }
+
+        .password-container {
+            position: relative;
+            margin: 10px 0;
+        }
+
+        .error-msg {
+            color: #d32f2f;
+            font-size: 13px;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 10px 12px;
+            background: #ffebee;
+            border-radius: 6px;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .success-msg {
+            color: #388e3c;
+            font-size: 13px;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 10px 12px;
+            background: #e8f5e9;
+            border-radius: 6px;
+            border-left: 4px solid #388e3c;
+        }
+
+        .form-group {
+            position: relative;
+            margin: 22px 0;
+        }
+
+        .form-group input {
+            margin: 0;
+            padding: 15px 12px 8px 12px;
+            background: #fafafa;
+        }
+
+        .form-group input:focus {
+            background: #fff;
+        }
+
+        .form-group.password-group input {
+            padding-right: 45px;
+        }
+
+        .form-group label {
+            position: absolute;
+            top: 15px;
+            left: 12px;
+            color: #999;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            font-weight: 500;
+        }
+
+        .form-group input:focus + label,
+        .form-group input:not(:placeholder-shown) + label {
+            top: -8px;
+            left: 12px;
+            font-size: 12px;
+            color: #1976D2;
+            font-weight: 600;
+            background: #fafafa;
+            padding: 0 4px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus + label {
+            background: #fff;
+        }
+
+        .form-group.password-group .field-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+            z-index: 10;
+            transition: color 0.3s ease;
+        }
+
+        .form-group.password-group .field-icon:hover {
+            color: #1976D2;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 0;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideDown 0.3s ease;
+            border: 1px solid #f0f0f0;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #1976D2;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #d32f2f;
+            transform: scale(1.2);
+        }
+
+        .close-modal:active {
+            transform: scale(0.95);
+        }
+
+        .modal-body {
+            padding: 30px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .signup-form-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .signup-form-group label {
+            position: absolute;
+            top: 15px;
+            left: 12px;
+            color: #999;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            margin: 0;
+            display: block;
+        }
+
+        .signup-form-group input {
+            width: 100%;
+            padding: 15px 12px 8px 12px;
+            border: 2px solid #e8e8e8;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .signup-form-group input:focus {
+            outline: none;
+            border-color: #1976D2;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        .signup-form-group input:focus + label,
+        .signup-form-group input:not(:placeholder-shown) + label {
+            top: -8px;
+            left: 12px;
+            font-size: 12px;
+            color: #1976D2;
+            font-weight: 600;
+            background: #fff;
+            padding: 0 4px;
+        }
+
+        .signup-msg {
+            font-size: 12px;
+            margin-top: 6px;
+            min-height: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .password-wrapper-modal {
+            position: relative;
+        }
+
+        .password-wrapper-modal input {
+            padding-right: 45px;
+        }
+
+        .toggle-eye {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+            font-size: 16px;
+            transition: color 0.3s ease;
+            z-index: 10;
+        }
+
+        .toggle-eye:hover {
+            color: #1976D2;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .modal-btn-submit {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+
+        .modal-btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+        }
+
+        .modal-btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .server-msg-modal {
+            text-align: center;
+            font-size: 13px;
+            margin-bottom: 20px;
+            color: #d32f2f;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 6px;
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
-            $("#signUp").click(function () {
-                window.location.href = "../tasks/signUp"
-            })
+            // Modal variables
+            const modal = $("#signupModal");
+            const signupBtn = $("#signUpBtn");
+            const closeBtn = $(".close-modal");
+            const cancelBtn = $(".close-modal-btn");
+
+            let usernameValid = false;
+            let emailValid = false;
+            let passwordValid = false;
+
+            // Open modal
+            signupBtn.click(function () {
+                modal.addClass("show");
+            });
+
+            // Close modal
+            closeBtn.click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                modal.removeClass("show");
+                resetForm();
+            });
+
+            cancelBtn.click(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                modal.removeClass("show");
+                resetForm();
+            });
+
+            // Close modal when clicking outside
+            $(window).click(function (event) {
+                if (event.target == modal[0]) {
+                    modal.removeClass("show");
+                    resetForm();
+                }
+            });
+
+            function resetForm() {
+                $("#signupForm")[0].reset();
+                $("#modalUsernameMsg").text("");
+                $("#modalEmailMsg").text("");
+                $("#modalPasswordMsg").text("");
+                usernameValid = false;
+                emailValid = false;
+                passwordValid = false;
+                updateSubmitButton();
+            }
+
+            function updateSubmitButton() {
+                $("#modalSubmitBtn").prop("disabled", !(usernameValid && emailValid && passwordValid));
+            }
+
+            // Username validation
+            $("#modal-username").on("keyup blur", function () {
+                let username = $(this).val().trim();
+
+                if (username.length < 4) {
+                    $("#modalUsernameMsg").text("username must be 4 characters or longer").css("color", "red");
+                    usernameValid = false;
+                    updateSubmitButton();
+                    return;
+                }
+
+                $.ajax({
+                    url: "/api/check-username/",
+                    type: "GET",
+                    data: { username: username },
+                    success: function (response) {
+                        if (response.exists) {
+                            $("#modalUsernameMsg").text("Username already exists").css("color", "red");
+                            usernameValid = false;
+                        } else {
+                            $("#modalUsernameMsg").text("").css("color", "green");
+                            usernameValid = true;
+                        }
+                        updateSubmitButton();
+                    }
+                });
+            });
+
+            // Email validation
+            $("#modal-email").on("keyup blur", function () {
+                const email = $(this).val().trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (email === "") {
+                    $("#modalEmailMsg").text("");
+                    emailValid = false;
+                    updateSubmitButton();
+                    return;
+                }
+
+                if (!emailRegex.test(email)) {
+                    $("#modalEmailMsg").text("Invalid email format").css("color", "red");
+                    emailValid = false;
+                    updateSubmitButton();
+                    return;
+                }
+
+                $.ajax({
+                    url: "/api/check-email/",
+                    type: "GET",
+                    data: { email: email },
+                    success: function (response) {
+                        if (response.exists) {
+                            $("#modalEmailMsg").text("Email already exists").css("color", "red");
+                            emailValid = false;
+                        } else {
+                            $("#modalEmailMsg").text("").css("color", "green");
+                            emailValid = true;
+                        }
+                        updateSubmitButton();
+                    }
+                });
+            });
+
+            // Password validation
+            $("#modal-password").on("keyup blur", function () {
+                const password = $(this).val();
+
+                passwordValid =
+                    password.length >= 8 &&
+                    /[A-Z]/.test(password) &&
+                    /[a-z]/.test(password) &&
+                    /\d/.test(password) &&
+                    /[@$!%*?&]/.test(password);
+
+                if (passwordValid) {
+                    $("#modalPasswordMsg").text("").css("color", "green");
+                } else {
+                    $("#modalPasswordMsg").text("Min 8 chars, uppercase, lowercase, number & special char").css("color", "red");
+                }
+
+                updateSubmitButton();
+            });
+
+            $("#modalTogglePassword").on("click", function () {
+                const input = $("#modal-password");
+                const isPassword = input.attr("type") === "password";
+
+                input.attr("type", isPassword ? "text" : "password");
+                $(this).toggleClass("fa-eye-slash", !isPassword);
+            });
 
             $(".toggle-password").click(function () {
                 const passwordInput = $("#password");
+                const icon = $(this);
 
                 if (passwordInput.attr("type") === "password") {
                     passwordInput.attr("type", "text");
-                    $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+                    icon.removeClass("fa-eye").addClass("fa-eye-slash");
                 } else {
                     passwordInput.attr("type", "password");
-                    $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+                    icon.removeClass("fa-eye-slash").addClass("fa-eye");
                 }
             });
         })
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
 
 <body>
+    <div class="container">
+        <div class="left-section">
+            <div class="login-box">
+                <h2>Login</h2>
+                <form method="post" action="login">
+                    {% csrf_token %}
+                    {% if error %}
+                        <div class="error-msg">{{ error }}</div>
+                    {% endif %}
+                    {% if msg %}
+                        <div class="success-msg">{{ msg }}</div>
+                    {% endif %}
 
-    <div class="login-box">
-        <h2>Login</h2>
-        <form method="post" action="login">
-            {% csrf_token %}
-            {{error}}
-            {{msg}}
+                    <div class="form-group">
+                        <input type="text" name="username" placeholder=" " value="{{username}}" required>
+                        <label>Username</label>
+                    </div>
 
-            <input type="text" name="username" placeholder="Username" value="{{username}}" required>
+                    <div class="form-group">
+                        <input type="password" id="password" name="password" placeholder=" " value="{{password}}" required>
+                        <label>Password</label>
+                        <span class="fa fa-fw fa-eye field-icon toggle-password" style="cursor: pointer;"></span>
+                    </div>
 
-            <div style="position: relative;">
-                <input type="password" id="password" name="password" placeholder="Password" value="{{password}}" required>
-
-                <span class="fa fa-fw fa-eye field-icon toggle-password" style="
-                    position: absolute;
-                    right: 10px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    cursor: pointer;
-                    color: #555;
-                ">
-                </span>
+                    <button type="submit">Login</button>
+                    <button type="button" id="signUpBtn">SignUp</button>
+                </form>
             </div>
+        </div>
 
+        <div class="right-section">
+            <div style="background: white; padding: 30px; border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px;">
+                <img src="https://d1s24u4ln0wd0i.cloudfront.net/website/new_ecom_asset/logo1.webp" alt="Medkart Logo" style="max-width: 180px; height: auto;">
+            </div>
+            <h2 style="color: rgba(255,255,255,0.9); font-size: 28px; margin-bottom: 40px; font-weight: 300; font-family: 'Playfair Display', serif; letter-spacing: 1px;">Task Management System</h2>
+            <p style="text-align: center; color: rgba(255,255,255,0.85); font-size: 16px; max-width: 500px; line-height: 1.8;">
+                Manage your projects and tasks efficiently. Track progress, collaborate with your team, and stay organized with our powerful task management system.
+            </p>
+        </div>
+    </div>
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sign Up</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                {% if msg %}
+                <div class="server-msg-modal">{{ msg }}</div>
+                {% endif %}
 
-            <button type="submit">Login</button>
-            <button type="button" id="signUp">SignUp</button>
-        </form>
+                <form method="post" action="register_user" id="signupForm">
+                    {% csrf_token %}
+
+                    <div class="signup-form-group">
+                        <input id="modal-username" type="text" name="username" placeholder=" " autocomplete="off" required>
+                        <label for="modal-username">Username</label>
+                        <div id="modalUsernameMsg" class="signup-msg"></div>
+                    </div>
+
+                    <div class="signup-form-group">
+                        <input id="modal-email" type="email" name="email" placeholder=" " required>
+                        <label for="modal-email">Email</label>
+                        <div id="modalEmailMsg" class="signup-msg"></div>
+                    </div>
+
+                    <div class="signup-form-group">
+                        <div class="password-wrapper-modal">
+                            <input id="modal-password" type="password" name="password" placeholder=" " autocomplete="new-password" required>
+                            <label for="modal-password">Password</label>
+                            <span class="fa fa-fw fa-eye toggle-eye" id="modalTogglePassword"></span>
+                        </div>
+                        <div id="modalPasswordMsg" class="signup-msg"></div>
+                    </div>
+
+                    <div class="signup-form-group">
+                        <input id="modal-fullname" type="text" name="fullname" placeholder=" " required>
+                        <label for="modal-fullname">Full Name</label>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button type="submit" class="modal-btn modal-btn-submit" id="modalSubmitBtn">Register</button>
+                        <button type="button" class="modal-btn modal-btn-cancel close-modal-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
 </body>

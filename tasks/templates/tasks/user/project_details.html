@@ -1,1193 +1,1324 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Project Detail</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
     <style>
-        .container {
-            display: flex;
-            padding: 20px;
-            gap: 20px;
-        }
-
-        .user-list {
-            width: 260px;
-            background: #ffffff;
-            border-radius: 6px;
-            padding: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .project-info {
-            background: #ffffff;
-            padding: 12px 14px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            max-width: 100%;
-            font-size: 13px;
-        }
-
-        .project-info h3 {
-            margin: 0 0 6px 0;
-            font-size: 16px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .project-info p {
-            margin: 4px 0;
-            color: #555;
-            word-wrap: break-word;
-        }
-
-        .workspace {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            min-height: 200px;
-
-        }
-
-        .user-list {
-            width: 260px;
-            background: #ffffff;
-            border-radius: 6px;
-            padding: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-list h3 {
-            margin-top: 0;
-            margin-bottom: 12px;
-            font-size: 16px;
-        }
-
-        .user-card {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 6px;
-            background: #f8f9fa;
-            transition: background 0.2s;
-        }
-
-        .user-card:hover {
-            background: #e9ecef;
-        }
-
-        .avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: #0d6efd;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .user-info {
-            overflow: hidden;
-        }
-
-        .username {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .email {
-            font-size: 12px;
-            color: #666;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .empty {
-            font-size: 13px;
-            color: #888;
-            text-align: center;
-        }
-
-        .workspace {
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            min-height: 200px;
-        }
-
-        .workspace-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .workspace-header h3 {
-            margin: 0;
-            font-size: 16px;
-        }
-
-        .add-task-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background: #198754;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .add-task-btn:hover {
-            background: #146c43;
-        }
-
-        .workspace-body {
-            font-size: 14px;
-            color: #555;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        .modal-content {
-            background: #ffffff;
-            margin: 8% auto;
-            padding: 20px;
-            width: 360px;
-            border-radius: 6px;
-            position: relative;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            text-align: center;
-        }
-
-        .close {
-            position: absolute;
-            right: 12px;
-            top: 8px;
-            font-size: 22px;
-            cursor: pointer;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 7px;
-            font-size: 13px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #198754;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 10px;
-            background: #198754;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .submit-btn:hover {
-            background: #146c43;
-        }
-
-        .task-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 14px;
-        }
-
-        .task-table th,
-        .task-table td {
-            border: 1px solid #ddd;
-            padding: 8px 10px;
-            text-align: left;
-        }
-
-        .task-table th {
-            background: #f1f3f5;
-            font-weight: 600;
-        }
-
-        .task-table tr:nth-child(even) {
-            background: #fafafa;
-        }
-
-        .task-table tr:hover {
-            background: #f1f7ff;
-        }
-
-        .priority.high {
-            color: #dc3545;
-            font-weight: 600;
-        }
-
-        .priority.medium {
-            color: #fd7e14;
-            font-weight: 600;
-        }
-
-        .priority.low {
-            color: #198754;
-            font-weight: 600;
-        }
-
-        .empty {
-            text-align: center;
-            color: #888;
-            font-size: 14px;
-        }
-
-        .current-user {
-            padding: 8px;
-            font-size: 14px;
-            color: #444;
-            background: #f8f9fa;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-
-        .you-badge {
-            color: #198754;
-            font-weight: bold;
-            font-size: 11px;
-            margin-left: 4px;
-        }
-
-        .you-badge {
-            color: #198754;
-            font-weight: bold;
-            font-size: 11px;
-            margin-left: 4px;
-        }
-
-        .btn-sm {
-            padding: 6px 10px;
-            font-size: 12px;
-            border: none;
-            border-radius: 4px;
-            margin-left: 6px;
-            cursor: pointer;
-            background: #0d6efd;
-            color: white;
-        }
-
-        .btn-sm:hover {
-            background: #0a58ca;
-        }
-
-        #editTaskModal .modal-content {
-            width: 380px;
-            margin-top: 5%;
-        }
-
-        .workflow-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        .workflow-overlay.show {
-            display: block;
-        }
-
-        .workflow-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            width: 500px;
-            z-index: 1000;
-        }
-
-        .workflow-popup.show {
-            display: block;
-        }
-
-        .workflow-open-btn {
-            padding: 15px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            background: #FF9800;
-            color: white;
-        }
-
-        .workflow-open-btn:hover {
-            background: #F57C00;
-        }
-
-        .workflow-close-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: #999;
-            padding: 0;
-            width: auto;
-        }
-
-        .workflow-close-btn:hover {
-            color: #333;
-        }
-
-        .workflow-popup h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-
-        .workflow-status-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .workflow-status-container::before {
-            content: '';
-            position: absolute;
-            top: 30px;
-            left: 15%;
-            right: 15%;
-            height: 3px;
-            background: #ddd;
-            z-index: 0;
-        }
-
-        .workflow-status-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-        }
-
-        .workflow-status-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid #ddd;
-            background: white;
-            color: #999;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-            font-size: 12px;
-            text-align: center;
-        }
-
-        .workflow-status-box.active .workflow-status-circle {
-            background: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-        }
-
-        .workflow-next-btn {
-            width: 100%;
-            padding: 15px;
-            margin-top: 20px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            background: #2196F3;
-            color: white;
-        }
-
-        .workflow-next-btn:hover {
-            background: #1976D2;
-        }
-
-        .workflow-next-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .row-overdue {
-            background: #ffe6e6 !important;
-        }
-
-        .overdue-badge {
-            background: #ff4d4d;
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 5px;
-            margin-left: 6px;
-        }
-
-        .status-overdue {
-            color: #cc0000;
-            font-weight: bold;
-        }
-
-        .status-todo {
-            color: #6c757d;
-        }
-
-        .status-in-progress {
-            color: #ff8c00;
-            font-weight: bold;
-        }
-
-        .status-under-review {
-            color: #007bff;
-            font-weight: bold;
-        }
-
-        .status-done {
-            color: #198754;
-            font-weight: bold;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.45);
-        }
-
-        .comment-box {
-            background: #fff;
-            width: 420px;
-            max-height: 75vh;
-            margin: 6% auto;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 18px;
-            border-bottom: 1px solid #e5e5e5;
-            background: #f8f9fa;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            font-size: 18px;
-        }
-
-        .close-comment {
-            cursor: pointer;
-            font-size: 20px;
-            padding: 4px;
-        }
-
-        .comments-container {
-            flex: 1;
-            padding: 14px 18px;
-            overflow-y: auto;
-            background: #ffffff;
-        }
-
-        .comment-item {
-            padding: 10px 12px;
-            border-radius: 6px;
-            background: #f1f3f5;
-            margin-bottom: 10px;
-        }
-
-        .comment-item {
-            background: #f1f3f5;
-            border-radius: 24px;
-            padding: 0px 18px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-        }
-
-        .comment-header {
-            font-size: 9px;
-            font-weight: 600;
-            color: #444;
-            margin-bottom: 3px;
-        }
-
-        .comment-body {
-            font-size: 13px;
-            color: #222;
-            margin-bottom: 4px;
-        }
-
-        .comment-footer {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .comment-time {
-            font-size: 9px;
-            color: #666;
-        }
-
-
-        .empty-comments {
-            color: #777;
-            font-size: 14px;
-            text-align: center;
-            padding: 10px;
-        }
-
-        .add-comment-box {
-            border-top: 1px solid #e5e5e5;
-            padding: 12px 15px;
-            background: #fafafa;
-            display: flex;
-            gap: 10px;
-        }
-
-        #newComment {
-            flex: 1;
-            height: 18px;
-            resize: none;
-            border-radius: 6px;
-            border: 1px solid #cccccc;
-            padding: 6px;
-            font-size: 11px;
-            outline: none;
-        }
-
-        #newComment:focus {
-            border-color: #007bff;
-        }
-
-        .send-btn {
-            width: 36px;
-            height: 36px;
-            border: none;
-            background: #0d6efd;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .send-btn:hover {
-            background: #0b5ed7;
-        }
-
-        .send-icon {
-            display: inline-block;
-            width: 0;
-            height: 0;
-            border-left: 14px solid white;
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            margin-left: 2px;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            border: none;
-            background: #f1f1f1;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            color: #444;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .close-btn:hover {
-            background: #e4e4e4;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .header {
+        background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .header-left h2 {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+      }
+      .logo-container {
+        background: white;
+        padding: 8px 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .logo-container img {
+        max-width: 120px;
+        height: auto;
+      }
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .user-info i {
+        font-size: 24px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 12px;
+        border-radius: 6px;
+      }
+      .power-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 8px;
+        margin-left: 15px;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+      }
+      .power-btn:hover {
+        color: #ffcdd2;
+      }
+
+      /* Content Grid */
+      .content {
+        flex: 1;
+        padding: 20px;
+        overflow: hidden;
+      }
+      .project-layout {
+        display: grid;
+        grid-template-columns: 260px 300px 1fr;
+        gap: 20px;
+        height: 100%;
+      }
+
+      /* Col 1: Project List */
+      .col-projects {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .col-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        font-weight: 600;
+        color: #333;
+        font-size: 16px;
+      }
+      .project-list-wrapper {
+        flex: 1;
+        overflow-y: auto;
+      }
+      .project-item {
+        padding: 15px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-left: 4px solid transparent;
+        display: block;
+        text-decoration: none;
+        color: inherit;
+      }
+      .project-item:hover {
+        background: #f9f9f9;
+        border-left-color: #1976d2;
+      }
+      .project-item.active {
+        background: #e3f2fd;
+        border-left-color: #1976d2;
+      }
+      .project-item-name {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      .project-item-desc {
+        font-size: 12px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Col 2: Details & Users */
+      .col-details {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: auto;
+      }
+      .detail-card,
+      .users-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+      }
+      .detail-card h3,
+      .users-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        color: #333;
+      }
+      .detail-card p {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 8px;
+      }
+
+      .user-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f5f5f5;
+      }
+      .user-row:last-child {
+        border-bottom: none;
+      }
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #1976d2;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .user-meta {
+        display: flex;
+        flex-direction: column;
+      }
+      .user-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+      }
+      .user-email {
+        font-size: 12px;
+        color: #888;
+      }
+
+      /* Col 3: Tasks */
+      .col-tasks {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .tasks-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .tasks-header h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+      }
+      .add-task-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: #1976d2;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .add-task-btn:hover {
+        background: #1565c0;
+      }
+      .tasks-body {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .task-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      .task-table th {
+        text-align: left;
+        padding: 10px;
+        background: #f8f9fa;
+        color: #555;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+      }
+      .task-table td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        color: #333;
+      }
+      .task-table tr:hover {
+        background: #f9f9f9;
+      }
+
+      .badge {
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: inline-block;
+        letter-spacing: 0.5px;
+      }
+
+      .badge-priority-high {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+      }
+      .badge-priority-medium {
+        background: #fff3e0;
+        color: #ef6c00;
+        border: 1px solid #ffe0b2;
+      }
+      .badge-priority-low {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+      }
+
+      .badge-status-todo {
+        background: #f5f5f5;
+        color: #616161;
+        border: 1px solid #e0e0e0;
+      }
+      .badge-status-in-progress {
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #bbdefb;
+      }
+      .badge-status-under-review {
+        background: #fff8e1;
+        color: #f57f17;
+        border: 1px solid #ffecb3;
+      }
+      .badge-status-done {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+      }
+      .badge-status-overdue {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+      }
+
+      /* Pagination */
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+        gap: 10px;
+      }
+       
+      .page-btn {
+        padding: 6px 14px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #555;
+        transition: all 0.2s;
+      }
+      .page-btn:hover:not(:disabled) {
+        background: #f0f0f0;
+        border-color: #ccc;
+        color: #333;
+      }
+      .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f9f9f9;
+      }
+      .page-info {
+        font-size: 13px;
+        color: #666;
+        font-weight: 500;
+      }
+
+      /* Action Buttons */
+      .action-btn-group {
+        display: flex;
+        gap: 6px;
+      }
+
+      .icon-btn {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 6px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+      }
+
+      .btn-edit { color: #1976d2; background: #e3f2fd; }
+      .btn-edit:hover { background: #1976d2; color: white; }
+
+      .btn-comment { color: #455a64; background: #eceff1; }
+      .btn-comment:hover { background: #455a64; color: white; }
+
+      .status-btn { color: #f57c00; background: #fff3e0; }
+      .status-btn:hover { background: #f57c00; color: white; }
+
+      /* Modals */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-content {
+        background: #ffffff;
+        margin: 8% auto;
+        padding: 20px;
+        width: 360px;
+        border-radius: 6px;
+        position: relative;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-content h3 {
+        margin-top: 0;
+        text-align: center;
+      }
+
+      .close {
+        position: absolute;
+        right: 12px;
+        top: 8px;
+        font-size: 22px;
+        cursor: pointer;
+      }
+
+      .form-group {
+        margin-bottom: 12px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 7px;
+        font-size: 13px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #1976d2;
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 10px;
+        background: #1976d2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .submit-btn:hover {
+        background: #1565c0;
+      }
+
+      .empty {
+        text-align: center;
+        color: #888;
+        font-size: 14px;
+      }
+
+      .btn-sm {
+        padding: 6px 10px;
+        font-size: 12px;
+        border: none;
+        border-radius: 4px;
+        margin-left: 6px;
+        cursor: pointer;
+        background: #1976d2;
+        color: white;
+      }
+
+      .btn-sm:hover {
+        background: #1565c0;
+      }
+
+      #editTaskModal .modal-content {
+        width: 380px;
+        margin-top: 5%;
+      }
+
+      .workflow-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+      }
+
+      .workflow-overlay.show {
+        display: block;
+      }
+
+      .workflow-popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        width: 500px;
+        z-index: 1000;
+      }
+
+      .workflow-popup.show {
+        display: block;
+      }
+
+      .workflow-open-btn {
+        padding: 15px 30px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #ff9800;
+        color: white;
+      }
+
+      .workflow-open-btn:hover {
+        background: #f57c00;
+      }
+
+      .workflow-close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 24px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        color: #999;
+        padding: 0;
+        width: auto;
+      }
+
+      .workflow-close-btn:hover {
+        color: #333;
+      }
+
+      .workflow-popup h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+      }
+
+      .workflow-status-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-bottom: 30px;
+        position: relative;
+      }
+
+      .workflow-status-container::before {
+        content: "";
+        position: absolute;
+        top: 30px;
+        left: 15%;
+        right: 15%;
+        height: 3px;
+        background: #ddd;
+        z-index: 0;
+      }
+
+      .workflow-status-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1;
+      }
+
+      .workflow-status-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 3px solid #ddd;
+        background: white;
+        color: #999;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .workflow-status-box.active .workflow-status-circle {
+        background: #4caf50;
+        color: white;
+        border-color: #4caf50;
+      }
+
+      .workflow-next-btn {
+        width: 100%;
+        padding: 15px;
+        margin-top: 20px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #2196f3;
+        color: white;
+      }
+
+      .workflow-next-btn:hover {
+        background: #1976d2;
+      }
+
+      .workflow-next-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .row-overdue {
+        background: #ffe6e6 !important;
+      }
+
+      .overdue-badge {
+        background: #ff4d4d;
+        color: white;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 5px;
+        margin-left: 6px;
+      }
+
+      .status-overdue {
+        color: #cc0000;
+        font-weight: bold;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .close-comment {
+        cursor: pointer;
+        font-size: 20px;
+        padding: 4px;
+      }
+
+      .comments-container {
+        flex: 1;
+        padding: 14px 18px;
+        overflow-y: auto;
+        background: #ffffff;
+      }
+
+      .comment-item {
+        padding: 10px 12px;
+        border-radius: 6px;
+        background: #f1f3f5;
+        margin-bottom: 10px;
+      }
+
+      .comment-item {
+        background: #f1f3f5;
+        border-radius: 24px;
+        padding: 0px 18px;
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+      }
+
+      .comment-header {
+        font-size: 9px;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 3px;
+      }
+
+      .comment-body {
+        font-size: 13px;
+        color: #222;
+        margin-bottom: 4px;
+      }
+
+      .comment-footer {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .comment-time {
+        font-size: 9px;
+        color: #666;
+      }
+
+      .empty-comments {
+        color: #777;
+        font-size: 14px;
+        text-align: center;
+        padding: 10px;
+      }
+
+      .add-comment-box {
+        border-top: 1px solid #e5e5e5;
+        padding: 12px 15px;
+        background: #fafafa;
+        display: flex;
+        gap: 10px;
+      }
+
+      #newComment {
+        flex: 1;
+        height: 18px;
+        resize: none;
+        border-radius: 6px;
+        border: 1px solid #cccccc;
+        padding: 6px;
+        font-size: 11px;
+        outline: none;
+      }
+
+      #newComment:focus {
+        border-color: #007bff;
+      }
+
+      .send-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: #1976d2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .send-btn:hover {
+        background: #1565c0;
+      }
+
+      .send-icon {
+        display: inline-block;
+        width: 0;
+        height: 0;
+        border-left: 14px solid white;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        margin-left: 2px;
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: none;
+        background: #f1f1f1;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #444;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .close-btn:hover {
+        background: #e4e4e4;
+      }
     </style>
+  </head>
 
-</head>
+  <body>
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="header">
+        <div class="header-left">
+          <div class="logo-container">
+            <img
+              src="https://d1s24u4ln0wd0i.cloudfront.net/website/new_ecom_asset/logo1.webp"
+              alt="Medkart Logo"
+            />
+          </div>
+          <h2>{{ project.title }}</h2>
+        </div>
+        <div class="header-right">
+          <div class="user-info">
+            <i class="fa fa-user-circle"></i>
+            <span>{{ request.session.username }}</span>
+          </div>
+          <form method="post" action="/logout" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="power-btn" title="Logout">
+              <i class="fa fa-power-off"></i>
+            </button>
+          </form>
+        </div>
+      </div>
 
-<body>
+      <div class="content">
+        <div class="project-layout">
+          <!-- Col 1: Project List -->
+          <div class="col-projects">
+            <div class="col-header">Projects</div>
+            <div class="project-list-wrapper">
+              {% for p in projects %}
+              <a
+                href="?project_id={{ p.id }}"
+                class="project-item {% if p.id == project.id %}active{% endif %}"
+              >
+                <div class="project-item-name">{{ p.title }}</div>
+                <div class="project-item-desc">{{ p.detail }}</div>
+              </a>
+              {% endfor %}
+            </div>
+          </div>
 
-    <a href="../" class="back-btn">← Back</a>
-    <div class="current-user">
-        Logged in as: <strong>{{ request.session.username }}</strong>
+          <!-- Col 2: Details & Users -->
+          <div class="col-details">
+            <div
+              class="detail-card"
+              id="projectInfo"
+              data-project-id="{{ project.id }}"
+            >
+              <h3>Project Details</h3>
+              <p><strong>Title:</strong> {{ project.title }}</p>
+              <p><strong>Description:</strong> {{ project.detail }}</p>
+            </div>
+
+            <div class="users-card">
+              <h3>Assigned Users</h3>
+              {% if users %} {% for user in users %}
+              <div class="user-row">
+                <div class="user-avatar">
+                  {{ user.username|slice:":1"|upper }}
+                </div>
+                <div class="user-meta">
+                  <span class="user-name">{{ user.username }}</span>
+                  <span class="user-email">{{ user.email }}</span>
+                </div>
+              </div>
+              {% endfor %} {% else %}
+              <div class="empty">No users assigned</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Col 3: Tasks -->
+          <div class="col-tasks">
+            <div class="tasks-header">
+              <h3>Tasks</h3>
+              <div style="display: flex; gap: 10px">
+                <button id="myTasksBtn" class="btn-sm">My Tasks</button>
+                <button id="allTasksBtn" class="btn-sm">All Tasks</button>
+                <button class="add-task-btn" title="Add Task">+</button>
+              </div>
+            </div>
+            <div class="tasks-body">
+              <table class="task-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Due Date</th>
+                    <th>Created by</th>
+                    <th>Updated by</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="taskTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-
-
-    <div class="container">
-
-        <div class="user-list">
-            <h3>Assigned Users</h3>
-
-            {% if users %}
-            {% for user in users %}
-            <div class="user-card">
-                <div class="avatar">
-                    {{ user.username|slice:":1"|upper }}
-                </div>
-                <div class="user-info">
-                    <div class="username">
-                        {{ user.username }}
-                        {% if user.id == request.session.user_id %}
-                        <span class="you-badge">(You)</span>
-                        {% endif %}
-                    </div>
-
-                    <div class="email">{{ user.email }}</div>
-                </div>
-            </div>
-            {% endfor %}
-            {% else %}
-            <div class="empty">No users assigned</div>
-            {% endif %}
-        </div>
-
-
-        <div class="content">
-
-            <div id="projectInfo" class="project-info" data-project-id="{{ project.id }}">
-                <h3>Project details</h3>
-                <h3 title="{{ project.title }}">{{ project.title }}</h3>
-                <p><strong>ID:</strong> {{ project.id }}</p>
-                <p><strong>Description:</strong> {{ project.detail }}</p>
-            </div>
-
-            <div class="workspace">
-
-                <div class="workspace-header">
-                    <h3>Tasks</h3>
-                    <button class="add-task-btn" title="Add Task">+</button>
-                </div>
-                <div>
-                    <button id="myTasksBtn" class="btn-sm">My Tasks</button>
-                    <button id="allTasksBtn" class="btn-sm">All Tasks</button>
-                </div>
-
-                <div class="workspace-body">
-
-                    <table class="task-table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Assigned To</th>
-                                <th>Due Date</th>
-                                <th>Created by</th>
-                                <th>Updated by</th>
-                                <th>Actions</th>
-
-                            </tr>
-                        </thead>
-                        <tbody id="taskTableBody"></tbody>
-                    </table>
-                </div>
-
-            </div>
-
-        </div>
-    </div>
     <!-- Add Task Modal -->
     <div id="taskModal" class="modal">
-        <div class="modal-content">
+      <div class="modal-content">
+        <span class="close">&times;</span>
 
-            <span class="close">&times;</span>
+        <h3>Add Task</h3>
 
-            <h3>Add Task</h3>
+        <form id="taskForm">
+          <input type="hidden" name="project_id" value="{{ project.id }}" />
 
-            <form id="taskForm">
-                <input type="hidden" name="project_id" value="{{ project.id }}">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" required />
+          </div>
 
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" name="title" required>
-                </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="3" required></textarea>
+          </div>
 
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea name="description" rows="3" required></textarea>
-                </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select name="priority" required>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
 
-                <div class="form-group">
-                    <label>Priority</label>
-                    <select name="priority" required>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" name="due_date" required />
+          </div>
 
-                <div class="form-group">
-                    <label>Due Date</label>
-                    <input type="date" name="due_date" required>
-                </div>
+          <div class="form-group">
+            <label>Assign To</label>
+            <select name="assigned_to" required>
+              {% for user in users %}
+              <option value="{{ user.id }}">{{ user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
 
-                <div class="form-group">
-                    <label>Assign To</label>
-                    <select name="assigned_to" required>
-                        {% for user in users %}
-                        <option value="{{ user.id }}">{{ user.username }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    Create Task
-                </button>
-
-            </form>
-
-        </div>
+          <button type="submit" class="submit-btn">Create Task</button>
+        </form>
+      </div>
     </div>
 
     <div id="editTaskModal" class="modal">
-        <div class="modal-content">
+      <div class="modal-content">
+        <span class="close edit-close">&times;</span>
 
-            <span class="close edit-close">&times;</span>
+        <h3>Edit Task</h3>
 
-            <h3>Edit Task</h3>
+        <form id="editTaskForm">
+          <input type="hidden" name="task_id" />
 
-            <form id="editTaskForm">
-                <input type="hidden" name="task_id">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" required />
+          </div>
 
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" name="title" required>
-                </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="3" required></textarea>
+          </div>
 
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea name="description" rows="3" required></textarea>
-                </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select name="priority" required>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
 
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" name="due_date" required />
+          </div>
 
-                <div class="form-group">
-                    <label>Priority</label>
-                    <select name="priority" required>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
+          <div class="form-group">
+            <label>Assign To</label>
+            <select name="assigned_to">
+              {% for user in users %}
+              <option value="{{ user.id }}">{{ user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
 
-                <div class="form-group">
-                    <label>Due Date</label>
-                    <input type="date" name="due_date" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Assign To</label>
-                    <select name="assigned_to">
-                        {% for user in users %}
-                        <option value="{{ user.id }}">{{ user.username }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-
-                <button type="submit" class="submit-btn">Save Changes</button>
-            </form>
-        </div>
+          <button type="submit" class="submit-btn">Save Changes</button>
+        </form>
+      </div>
     </div>
 
     <div class="workflow-overlay" id="overlay"></div>
 
     <div class="workflow-popup" id="popup">
-        <button class="workflow-close-btn" id="closeBtn">&times;</button>
-        <h2>Workflow Status</h2>
+      <button class="workflow-close-btn" id="closeBtn">&times;</button>
+      <h2>Workflow Status</h2>
 
-        <div class="workflow-status-container">
-            <div class="workflow-status-box active" id="status0">
-                <div class="workflow-status-circle">To-Do</div>
-            </div>
-            <div class="workflow-status-box" id="status1">
-                <div class="workflow-status-circle">In-Progress</div>
-            </div>
-            <div class="workflow-status-box" id="status2">
-                <div class="workflow-status-circle">Under-Review</div>
-            </div>
-            <div class="workflow-status-box" id="status3">
-                <div class="workflow-status-circle">Done</div>
-            </div>
+      <div class="workflow-status-container">
+        <div class="workflow-status-box active" id="status0">
+          <div class="workflow-status-circle">To-Do</div>
         </div>
+        <div class="workflow-status-box" id="status1">
+          <div class="workflow-status-circle">In-Progress</div>
+        </div>
+        <div class="workflow-status-box" id="status2">
+          <div class="workflow-status-circle">Under-Review</div>
+        </div>
+        <div class="workflow-status-box" id="status3">
+          <div class="workflow-status-circle">Done</div>
+        </div>
+      </div>
 
-        <div class="button-container">
-            <button class="workflow-next-btn" id="nextBtn">Update</button>
-        </div>
+      <div class="button-container">
+        <button class="workflow-next-btn" id="nextBtn">Update</button>
+      </div>
     </div>
 
     <div id="commentsModal" class="modal">
-        <div class="modal-content comment-box">
-
-            <div class="modal-header">
-                <h3>Task Comments</h3>
-                <span class="close-comment">&times;</span>
-            </div>
-
-            <div id="commentsList" class="comments-container">
-                <div class="empty-comments">No comments yet</div>
-            </div>
-
-            <div class="add-comment-box">
-                <textarea id="newComment" placeholder="Write a comment..."></textarea>
-                <button id="sendCommentBtn" class="send-btn">
-                    <i class="send-icon"></i>
-                </button>
-            </div>
-
-
+      <div class="modal-content comment-box">
+        <div class="modal-header">
+          <h3>Task Comments</h3>
+          <span class="close-comment">&times;</span>
         </div>
+
+        <div id="commentsList" class="comments-container">
+          <div class="empty-comments">No comments yet</div>
+        </div>
+
+        <div class="add-comment-box">
+          <textarea id="newComment" placeholder="Write a comment..."></textarea>
+          <button id="sendCommentBtn" class="send-btn">
+            <i class="send-icon"></i>
+          </button>
+        </div>
+      </div>
     </div>
-
-
-
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        const SESSION_USER_ID = "{{ request.session.user_id }}";
+      const SESSION_USER_ID = "{{ request.session.user_id }}";
 
-        $(document).ready(function () {
+      $(document).ready(function () {
+        const modal = $("#taskModal");
+        const taskForm = $("#taskForm");
+        let currentProjectId = $("#projectInfo").data("project-id");
 
-            const modal = $("#taskModal");
-            const taskForm = $("#taskForm");
-            let currentProjectId = $("#projectInfo").data("project-id");
+        loadTasks(currentProjectId);
 
-            loadTasks(currentProjectId);
+        $(".add-task-btn").on("click", function () {
+          modal.show();
+        });
 
+        modal.find(".close").on("click", function () {
+          closeModal();
+        });
 
-            $(".add-task-btn").on("click", function () {
-                modal.show();
-            });
+        $(window).on("click", function (e) {
+          if ($(e.target).is(modal)) {
+            closeModal();
+          }
+        });
 
-            modal.find(".close").on("click", function () {
+        function closeModal() {
+          modal.hide();
+          taskForm[0].reset();
+        }
+
+        taskForm.on("submit", function (e) {
+          e.preventDefault();
+
+          $.ajax({
+            url: "/user/api/task/create/",
+            type: "POST",
+            data: new FormData(this),
+            processData: false,
+            contentType: false,
+            headers: {
+              "X-CSRFToken": "{{ csrf_token }}",
+            },
+            success: function (res) {
+              if (res.error) {
+                alert(res.error);
+              } else {
+                alert("Task created successfully");
                 closeModal();
-            });
-
-            $(window).on("click", function (e) {
-                if ($(e.target).is(modal)) {
-                    closeModal();
-                }
-            });
-
-            function closeModal() {
-                modal.hide();
-                taskForm[0].reset();
-            }
-
-            taskForm.on("submit", function (e) {
-                e.preventDefault();
-
-                $.ajax({
-                    url: "/user/api/task/create/",
-                    type: "POST",
-                    data: new FormData(this),
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        "X-CSRFToken": "{{ csrf_token }}"
-                    },
-                    success: function (res) {
-                        if (res.error) {
-                            alert(res.error);
-                        } else {
-                            alert("Task created successfully");
-                            closeModal();
-                            location.reload()
-                        }
-                    },
-                    error: function () {
-                        alert("Something went wrong");
-                    }
-                });
-            });
-
-            $("#myTasksBtn").on("click", function () {
-                const userId = "{{ request.session.user_id }}";
-                $("table tbody tr").each(function () {
-                    const assignedTo = $(this).find("td:nth-child(4)").text();
-                    if (assignedTo.includes("(You)")) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-            });
-
-            $("#allTasksBtn").on("click", function () {
-                $("table tbody tr").show();
-            });
-
-            const userId = "{{ request.session.user_id }}";
-
-            $("#myTasksBtn").on("click", function () {
-                $("tbody tr").each(function () {
-                    const assigned = $(this).find(".assigned-user").text();
-                    if (assigned.includes("(You)")) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-            });
-
-            $("#allTasksBtn").on("click", function () {
-                $("tbody tr").show();
-            });
-
-            $(document).on("click", ".btn-edit", function () {
-                // modal.show();
-                const taskId = $(this).data("id");
-                $.get("/tasks/user/api/task/get_task_details/" + taskId + "/", function (res) {
-
-                    const form = $("#editTaskForm");
-
-                    form.find("input[name=task_id]").val(res.id);
-                    form.find("input[name=title]").val(res.title);
-                    form.find("textarea[name=description]").val(res.description);
-                    form.find("select[name=status]").val(res.status);
-                    form.find("select[name=priority]").val(res.priority);
-                    form.find("input[name=due_date]").val(res.due_date);
-                    form.find("select[name=assigned_to]").val(res.assigned_to ?? "");
-
-                    openEditModal()
-                });
-            });
-
-            $(".edit-close").on("click", function () {
-                closeEditModal();
-            });
-
-            const editModal = $("#editTaskModal");
-            const editForm = $("#editTaskForm");
-
-            function openEditModal() {
-                editModal.show();
-            }
-
-            function closeEditModal() {
-                editModal.hide();
-                editForm[0].reset();
-            }
-
-            $("#editTaskForm").on("submit", function (e) {
-                e.preventDefault();
-
-                const modal = $("#editTaskModal");
-
-                const payload = {
-                    task_id: modal.find("input[name=task_id]").val(),
-                    title: modal.find("input[name=title]").val(),
-                    description: modal.find("textarea[name=description]").val(),
-                    priority: modal.find("select[name=priority]").val(),
-                    due_date: modal.find("input[name=due_date]").val(),
-                    assigned_to: modal.find("select[name=assigned_to]").val()
-                }; 
-
-                $.ajax({
-                    url: "/tasks/api/task/update/",
-                    type: "POST",
-                    data: JSON.stringify(payload),
-                    contentType: "application/json",
-                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
-                    success: function (res) {
-                        alert("Task updated");
-                        closeEditModal();
-                        location.reload();
-                    },
-                    error: function (err) {
-                        alert("Update failed");
-                    }
-                });
-            });
-
-            const statusOrder = ["Todo", "In Progress", "Under Review", "Done"];
-            let current = 0;
-            let taskId = null;
-
-
-            $(document).on("click", ".status-btn", function () {
-                taskId = $(this).data("id");
-
-
-                $('#popup').addClass('show');
-                $('#overlay').addClass('show');
-
-                $.get(`/tasks/api/task/get-status/${taskId}/`, function (res) {
-
-                    current = statusOrder.indexOf(res.task_status);
-
-                    $(".workflow-status-box").removeClass("active");
-
-                    $("#status" + current).addClass("active");
-
-                    if (current === statusOrder.length - 1) {
-                        $("#nextBtn").prop("disabled", true).text("Completed!");
-                    } else {
-                        $("#nextBtn").prop("disabled", false).text("Next");
-                    }
-                });
-            });
-
-
-
-            $('#closeBtn, #overlay').click(function () {
                 location.reload();
-                $('#popup').removeClass('show');
-                $('#overlay').removeClass('show');
-            });
+              }
+            },
+            error: function () {
+              alert("Something went wrong");
+            },
+          });
+        });
 
-            $('#nextBtn').click(function () {
-                if (current < statusOrder.length - 1) {
-
-                    current++;
-
-                    $(".workflow-status-box").removeClass("active");
-                    $("#status" + current).addClass("active");
-
-                    const newStatus = statusOrder[current];
-
-                    updateTaskStatus();
-
-                    if (current === statusOrder.length - 1) {
-                        $("#nextBtn").prop("disabled", true).text("Completed!");
-                    }
-                }
-
-            })
-
-            function updateTaskStatus() {
-                $.ajax({
-                    url: `/tasks/api/task/update-task/${taskId}/`,
-                    type: "POST",
-                    contentType: "application/json",
-                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
-                    success: function (res) {
-                        console.log("Status updated:", res);
-                    },
-                    error: function (err) {
-                        console.error("Update failed", err.responseText);
-                    }
-                });
+        $("#myTasksBtn").on("click", function () {
+          const userId = "{{ request.session.user_id }}";
+          $("table tbody tr").each(function () {
+            const assignedTo = $(this).find("td:nth-child(4)").text();
+            if (assignedTo.includes("(You)")) {
+              $(this).show();
+            } else {
+              $(this).hide();
             }
+          });
+        });
 
-            $(document).on("click", ".btn-comment", function () {
-                const taskId = $(this).data("id");
+        $("#allTasksBtn").on("click", function () {
+          $("table tbody tr").show();
+        });
 
-                $("#commentsModal").data("task-id", taskId);
-                // $("#commentsModal").addClass("show");
-                $("#commentsModal").show()
-                loadComments(taskId);
-            });
+        const userId = "{{ request.session.user_id }}";
 
-            $(document).on("click", ".close-comment", function () {
-                closeCommentsModal();
-            });
+        $("#myTasksBtn").on("click", function () {
+          $("tbody tr").each(function () {
+            const assigned = $(this).find(".assigned-user").text();
+            if (assigned.includes("(You)")) {
+              $(this).show();
+            } else {
+              $(this).hide();
+            }
+          });
+        });
 
-            $("#sendCommentBtn").on("click", function () {
-                taskId = $("#commentsModal").data("task-id")
+        $("#allTasksBtn").on("click", function () {
+          $("tbody tr").show();
+        });
 
-                const commentText = $("#newComment").val().trim();
-                // const taskId = $("#commentsModal").data("task-id");
+        $(document).on("click", ".btn-edit", function () {
+          // modal.show();
+          const taskId = $(this).data("id");
+          $.get(
+            "/tasks/user/api/task/get_task_details/" + taskId + "/",
+            function (res) {
+              const form = $("#editTaskForm");
 
+              form.find("input[name=task_id]").val(res.id);
+              form.find("input[name=title]").val(res.title);
+              form.find("textarea[name=description]").val(res.description);
+              form.find("select[name=status]").val(res.status);
+              form.find("select[name=priority]").val(res.priority);
+              form.find("input[name=due_date]").val(res.due_date);
+              form.find("select[name=assigned_to]").val(res.assigned_to ?? "");
 
-                if (!commentText) return;
+              openEditModal();
+            }
+          );
+        });
 
-                $.ajax({
-                    url: "/tasks/api/comment/add-comment/",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({
-                        task_id: taskId,
-                        comment: commentText
-                    }),
-                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
-                    success: function (res) {
-                        $("#newComment").val("");
+        $(".edit-close").on("click", function () {
+          closeEditModal();
+        });
 
-                        $("#commentsList").append(`
+        const editModal = $("#editTaskModal");
+        const editForm = $("#editTaskForm");
+
+        function openEditModal() {
+          editModal.show();
+        }
+
+        function closeEditModal() {
+          editModal.hide();
+          editForm[0].reset();
+        }
+
+        $("#editTaskForm").on("submit", function (e) {
+          e.preventDefault();
+
+          const modal = $("#editTaskModal");
+
+          const payload = {
+            task_id: modal.find("input[name=task_id]").val(),
+            title: modal.find("input[name=title]").val(),
+            description: modal.find("textarea[name=description]").val(),
+            priority: modal.find("select[name=priority]").val(),
+            due_date: modal.find("input[name=due_date]").val(),
+            assigned_to: modal.find("select[name=assigned_to]").val(),
+          };
+
+          $.ajax({
+            url: "/tasks/api/task/update/",
+            type: "POST",
+            data: JSON.stringify(payload),
+            contentType: "application/json",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            success: function (res) {
+              alert("Task updated");
+              closeEditModal();
+              location.reload();
+            },
+            error: function (err) {
+              alert("Update failed");
+            },
+          });
+        });
+
+        const statusOrder = ["Todo", "In Progress", "Under Review", "Done"];
+        let current = 0;
+        let taskId = null;
+
+        $(document).on("click", ".status-btn", function () {
+          taskId = $(this).data("id");
+
+          $("#popup").addClass("show");
+          $("#overlay").addClass("show");
+
+          $.get(`/tasks/api/task/get-status/${taskId}/`, function (res) {
+            current = statusOrder.indexOf(res.task_status);
+
+            $(".workflow-status-box").removeClass("active");
+
+            $("#status" + current).addClass("active");
+
+            if (current === statusOrder.length - 1) {
+              $("#nextBtn").prop("disabled", true).text("Completed!");
+            } else {
+              $("#nextBtn").prop("disabled", false).text("Next");
+            }
+          });
+        });
+
+        $("#closeBtn, #overlay").click(function () {
+          location.reload();
+          $("#popup").removeClass("show");
+          $("#overlay").removeClass("show");
+        });
+
+        $("#nextBtn").click(function () {
+          if (current < statusOrder.length - 1) {
+            current++;
+
+            $(".workflow-status-box").removeClass("active");
+            $("#status" + current).addClass("active");
+
+            const newStatus = statusOrder[current];
+
+            updateTaskStatus();
+
+            if (current === statusOrder.length - 1) {
+              $("#nextBtn").prop("disabled", true).text("Completed!");
+            }
+          }
+        });
+
+        function updateTaskStatus() {
+          $.ajax({
+            url: `/tasks/api/task/update-task/${taskId}/`,
+            type: "POST",
+            contentType: "application/json",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            success: function (res) {
+              console.log("Status updated:", res);
+            },
+            error: function (err) {
+              console.error("Update failed", err.responseText);
+            },
+          });
+        }
+
+        $(document).on("click", ".btn-comment", function () {
+          const taskId = $(this).data("id");
+
+          $("#commentsModal").data("task-id", taskId);
+          // $("#commentsModal").addClass("show");
+          $("#commentsModal").show();
+          loadComments(taskId);
+        });
+
+        $(document).on("click", ".close-comment", function () {
+          closeCommentsModal();
+        });
+
+        $("#sendCommentBtn").on("click", function () {
+          taskId = $("#commentsModal").data("task-id");
+
+          const commentText = $("#newComment").val().trim();
+          // const taskId = $("#commentsModal").data("task-id");
+
+          if (!commentText) return;
+
+          $.ajax({
+            url: "/tasks/api/comment/add-comment/",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+              task_id: taskId,
+              comment: commentText,
+            }),
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            success: function (res) {
+              $("#newComment").val("");
+
+              $("#commentsList").append(`
                             <div class="comment-item">
                                 <div class="comment-header">
                                     <span class="comment-user">${res.comment.user}</span>
@@ -1200,72 +1331,77 @@
                                 </div>
                             </div>
                         `);
-                    }
-                });
-            });
-
-            
-
+            },
+          });
         });
+      });
 
-        function loadTasks(projectId, page = 1, limit = 10) {
+      function loadTasks(projectId, page = 1, limit = 10) {
+        $.ajax({
+          url: `/tasks/api/project/${projectId}/tasks/?page=${page}&limit=${limit}`,
+          type: "GET",
+          dataType: "json",
+          success: function (res) {
+            const tbody = $("#taskTableBody");
+            tbody.empty();
 
-            $.ajax({
-                url: `/tasks/api/project/${projectId}/tasks/?page=${page}&limit=${limit}`,
-                type: "GET",
-                dataType: "json",
-                success: function (res) {
-                    const tbody = $("#taskTableBody");
-                    tbody.empty();
+            if (res.tasks.length === 0) {
+              tbody.append(
+                `<tr><td colspan="8" class="empty">No tasks found</td></tr>`
+              );
+              return;
+            }
 
-                    if (res.tasks.length === 0) {
-                        tbody.append(`<tr><td colspan="8" class="empty">No tasks found</td></tr>`);
-                        return;
-                    }
+            res.tasks.forEach((task) => {
+              let assignedTo = task.assigned_to ?? "-";
+              let createdBy = task.created_by ?? "-";
+              let updatedBy = task.updated_by ?? "-";
 
-                    res.tasks.forEach(task => {
+              let overdueBadge = "";
+              if (task.is_overdue) {
+                overdueBadge = `<span class="overdue-badge">Overdue by ${task.overdue_days} days</span>`;
+              }
 
-                        let assignedTo = task.assigned_to ?? "-";
-                        let createdBy = task.created_by ?? "-";
-                        let updatedBy = task.updated_by ?? "-";
+              let statusClass =
+                "badge-status-" +
+                task.status.replace(/\s+/g, "-").toLowerCase();
+              if (task.is_overdue && task.status !== "Done")
+                statusClass = "badge-status-overdue";
 
-                        let overdueBadge = "";
-                        if (task.is_overdue) {
-                            overdueBadge = `<span class="overdue-badge">Overdue by ${task.overdue_days} days</span>`;
-                        }
+              let priorityClass =
+                "badge-priority-" + (task.priority || "low").toLowerCase();
 
-                        let statusClass = task.is_overdue
-                            ? "status-overdue"
-                            : "status-" + task.status.replace(/\s+/g, '-').toLowerCase();
-
-                        let actions = `
-                            <button class="btn-comment" data-id="${task.task_id}">
-                                <i class="fa fa-comment"></i>
+              let actions = `
+                            <button class="icon-btn btn-comment" data-id="${task.task_id}" title="Comments">
+                                <i class="fa fa-comments"></i>
                             </button>
                         `;
 
-                        if (task.assigned_to_id == SESSION_USER_ID) {
-                            actions = `
-                                <button class="btn-edit" data-id="${task.task_id}">
-                                    <i class="fa fa-edit"></i>
+              if (task.assigned_to_id == SESSION_USER_ID) {
+                actions =
+                  `
+                                <button class="icon-btn btn-edit" data-id="${task.task_id}" title="Edit">
+                                    <i class="fa fa-pencil"></i>
                                 </button>
-                                <button class="status-btn" data-id="${task.task_id}">
-                                    <i class="fa fa-eye"></i>
+                                <button class="icon-btn status-btn" data-id="${task.task_id}" title="Update Status">
+                                    <i class="fa fa-refresh"></i>
                                 </button>
                             ` + actions;
-                        }
+              }
 
-                        const row = `
-                            <tr class="${task.is_overdue ? 'row-overdue' : ''}">
+              actions = `<div class="action-btn-group">${actions}</div>`;
+
+              const row = `
+                            <tr class="${task.is_overdue ? "row-overdue" : ""}">
                                 <td>
                                     ${task.title}<br>
                                     ${overdueBadge}
                                 </td>
-                                <td class="priority ${task.priority}">
-                                    ${task.priority}
+                                <td>
+                                    <span class="badge ${priorityClass}">${task.priority}</span>
                                 </td>
-                                <td class="${statusClass}">
-                                    ${task.status}
+                                <td>
+                                    <span class="badge ${statusClass}">${task.status}</span>
                                 </td>
                                 <td>${assignedTo}</td>
                                 <td>${task.due_date}</td>
@@ -1275,60 +1411,58 @@
                             </tr>
                         `;
 
-                        tbody.append(row);
-                    });
-
-                    renderPagination(res);
-                },
-                error: function (xhr) {
-                    console.error(xhr.responseText);
-                }
+              tbody.append(row);
             });
+
+            renderPagination(res);
+          },
+          error: function (xhr) {
+            console.error(xhr.responseText);
+          },
+        });
+      }
+      function renderPagination(res) {
+        console.log(res);
+
+        let paginationDiv = $("#pagination");
+
+        if (paginationDiv.length === 0) {
+          $(".col-tasks").append(
+            `<div id="pagination" class="pagination-container"></div>`
+          );
+          paginationDiv = $("#pagination");
         }
-        function renderPagination(res) {
-            console.log(res);
-            
-            let paginationDiv = $("#pagination");
+        paginationDiv.empty();
 
-            if (paginationDiv.length === 0) {
-                $("#taskTableBody").after(`<div id="pagination"></div>`);
-                paginationDiv = $("#pagination");
-            }
+        let prevDisabled = res.has_previous ? "" : "disabled";
+        let nextDisabled = res.has_next ? "" : "disabled";
 
-            paginationDiv.html("");
-
-            let prevDisabled = res.has_previous ? "" : "disabled";
-            let nextDisabled = res.has_next ? "" : "disabled";
-
-            paginationDiv.append(`
-                <button class="page-btn" ${prevDisabled} data-page="${res.previous_page}">Prev</button>
-                <span> Page ${res.page} of ${res.total_pages} </span>
-                <button class="page-btn" ${nextDisabled} data-page="${res.next_page}">Next</button>
+        paginationDiv.append(`
+                <button class="page-btn" ${prevDisabled} data-page="${res.previous_page}"><i class="fa fa-chevron-left"></i> Prev</button>
+                <span class="page-info"> Page ${res.page} of ${res.total_pages} </span>
+                <button class="page-btn" ${nextDisabled} data-page="${res.next_page}">Next <i class="fa fa-chevron-right"></i></button>
             `);
 
-            $(".page-btn").on("click", function () {
-                const p = $(this).data("page");
-                currentProjectId=$("#projectInfo").data("project-id");
-                console.log(currentProjectId);
-                
-                if (p) loadTasks(currentProjectId, p);
-            });
-        }
+        $(".page-btn").on("click", function () {
+          const p = $(this).data("page");
+          currentProjectId = $("#projectInfo").data("project-id");
+          console.log(currentProjectId);
 
-        
+          if (p) loadTasks(currentProjectId, p);
+        });
+      }
 
-        function closeCommentsModal() {
-            $("#commentsModal").hide();
-        }
+      function closeCommentsModal() {
+        $("#commentsModal").hide();
+      }
 
-
-        function appendComment(c) {
-            $("#commentsList").append(`
+      function appendComment(c) {
+        $("#commentsList").append(`
                 <div class="comment-item">
                     <div class="comment-header">
                         <span class="comment-user">${c.user}</span>
                     </div>
-                    <div class="comment-body">
+                   <div class="comment-body">
                         ${c.comment}
                     </div>
                     <div class="comment-footer">
@@ -1336,28 +1470,28 @@
                     </div>
                 </div>
             `);
-        }
+      }
 
+      function loadComments(taskId) {
+        $("#commentsList").html(`<div class="loading">Loading...</div>`);
 
-        function loadComments(taskId) {
-            $("#commentsList").html(`<div class="loading">Loading...</div>`);
+        $.get(`/tasks/api/comments/get-comments/${taskId}/`, function (res) {
+            $("#commentsList").empty();
 
-            $.get(`/tasks/api/comments/get-comments/${taskId}/`, function (res) {
-                $("#commentsList").empty();
+            if (!res.comments || res.comments.length === 0) {
+            $("#commentsList").html(
+                `<div class="no-comments">No comments yet</div>`
+            );
+            return;
+            }
 
-                if (!res.comments || res.comments.length === 0) {
-                    $("#commentsList").html(`<div class="no-comments">No comments yet</div>`);
-                    return;
-                }
-
-                res.comments.forEach(c => {
-                    appendComment(c);
-                });
-                let container = document.getElementById("commentsList");
-                container.scrollTop = container.scrollHeight;
+            res.comments.forEach((c) => {
+            appendComment(c);
             });
-        }
+            let container = document.getElementById("commentsList");
+            container.scrollTop = container.scrollHeight;
+        });
+      }
     </script>
-</body>
-
+  </body>
 </html>

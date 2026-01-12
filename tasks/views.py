@@ -142,6 +142,20 @@ def user_dashboard(request):
 
 def manage_user(request):
     users = Users.objects.all()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        users_data = []
+        for user in users:
+            users_data.append({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.name if user.role else "",
+                "created_by": user.created_by.username if user.created_by else "",
+                "created_at": user.created_at.strftime("%Y-%m-%d %H:%M") if user.created_at else "",
+                "note": user.note
+            })
+        return JsonResponse({"users": users_data})
     return render(request,"tasks/admin/manage_user.html",{"users":users})
 
 def add_user(request):
@@ -181,6 +195,9 @@ def add_user(request):
 
 def manage_role(request):
     roles=Role.objects.all()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        roles_data = [{"id": role.id, "name": role.name} for role in roles]
+        return JsonResponse({"roles": roles_data})
     return render(request,"tasks/admin/manage_role.html",{"roles":roles})
 
 def role(request):
@@ -189,6 +206,8 @@ def role(request):
         role_name=form.get("role_name")
         role=Role(name=role_name)
         role.save()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"message": "Role added successfully"})
         return redirect("tasks:manage_role")
     else:
         return redirect("tasks:admin")
@@ -202,8 +221,12 @@ def edit_role(request):
             role=Role.objects.get(id=role_id)
             role.name=role_name
             role.save()
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"message": "Role updated successfully"})
         except Exception as err:
             print(err)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"error": str(err)}, status=400)
     return redirect("tasks:manage_role")
 
 def delete_role(request):
@@ -213,8 +236,12 @@ def delete_role(request):
         try:
             role=Role.objects.get(id=role_id)
             role.delete()
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"message": "Role deleted successfully"})
         except Exception as err:
             print(err)
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"error": str(err)}, status=400)
     return redirect("tasks:manage_role")
 
 def check_username(request):
@@ -405,7 +432,10 @@ def project_details(request):
         tasks = Task.objects.filter(
             project_id=project
         ).select_related("assigned_to")
-        return render(request,"tasks/user/project_details.html",{"project":project,"users":users,"tasks": tasks})
+        
+        user_id = request.session.get("user_id")
+        all_projects = Project.objects.filter(project_user__user_id=user_id).distinct()
+        return render(request,"tasks/user/project_details.html",{"project":project,"users":users,"tasks": tasks, "projects": all_projects})
     except Exception as err:
         print(err)
     return redirect("tasks:user")
