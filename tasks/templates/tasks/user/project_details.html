@@ -699,7 +699,6 @@
 
     <div class="container">
 
-        <!-- Left users -->
         <div class="user-list">
             <h3>Assigned Users</h3>
 
@@ -896,7 +895,7 @@
         </div>
 
         <div class="button-container">
-            <button class="workflow-next-btn" id="nextBtn">Next</button>
+            <button class="workflow-next-btn" id="nextBtn">Update</button>
         </div>
     </div>
 
@@ -1065,10 +1064,7 @@
                     priority: modal.find("select[name=priority]").val(),
                     due_date: modal.find("input[name=due_date]").val(),
                     assigned_to: modal.find("select[name=assigned_to]").val()
-                };
-
-
-
+                }; 
 
                 $.ajax({
                     url: "/tasks/api/task/update/",
@@ -1093,9 +1089,6 @@
 
 
             $(document).on("click", ".status-btn", function () {
-                console.log("hello873");
-
-
                 taskId = $(this).data("id");
 
 
@@ -1121,6 +1114,7 @@
 
 
             $('#closeBtn, #overlay').click(function () {
+                location.reload();
                 $('#popup').removeClass('show');
                 $('#overlay').removeClass('show');
             });
@@ -1160,7 +1154,7 @@
             }
 
             $(document).on("click", ".btn-comment", function () {
-                const taskId = $(this).data("id"); 
+                const taskId = $(this).data("id");
 
                 $("#commentsModal").data("task-id", taskId);
                 // $("#commentsModal").addClass("show");
@@ -1192,7 +1186,7 @@
                     headers: { "X-CSRFToken": "{{ csrf_token }}" },
                     success: function (res) {
                         $("#newComment").val("");
-                        
+
                         $("#commentsList").append(`
                             <div class="comment-item">
                                 <div class="comment-header">
@@ -1209,6 +1203,8 @@
                     }
                 });
             });
+
+            
 
         });
 
@@ -1290,7 +1286,10 @@
             });
         }
         function renderPagination(res) {
+            console.log(res);
+            
             let paginationDiv = $("#pagination");
+
             if (paginationDiv.length === 0) {
                 $("#taskTableBody").after(`<div id="pagination"></div>`);
                 paginationDiv = $("#pagination");
@@ -1298,17 +1297,26 @@
 
             paginationDiv.html("");
 
+            let prevDisabled = res.has_previous ? "" : "disabled";
+            let nextDisabled = res.has_next ? "" : "disabled";
+
             paginationDiv.append(`
-                <button class="page-btn" ${res.has_previous ? "" : "disabled"} data-page="${res.page - 1}">Prev</button>
+                <button class="page-btn" ${prevDisabled} data-page="${res.previous_page}">Prev</button>
                 <span> Page ${res.page} of ${res.total_pages} </span>
-                <button class="page-btn" ${res.has_next ? "" : "disabled"} data-page="${res.page + 1}">Next</button>
+                <button class="page-btn" ${nextDisabled} data-page="${res.next_page}">Next</button>
             `);
 
             $(".page-btn").on("click", function () {
                 const p = $(this).data("page");
-                loadTasks(currentProjectId, p);
+                currentProjectId=$("#projectInfo").data("project-id");
+                console.log(currentProjectId);
+                
+                if (p) loadTasks(currentProjectId, p);
             });
         }
+
+        
+
         function closeCommentsModal() {
             $("#commentsModal").hide();
         }
@@ -1349,11 +1357,6 @@
                 container.scrollTop = container.scrollHeight;
             });
         }
-
-
-
-
-
     </script>
 </body>
 

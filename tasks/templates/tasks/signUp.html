@@ -121,17 +121,55 @@
         .login-link a:hover {
             text-decoration: underline;
         }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .eye {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            width: 18px;
+            height: 12px;
+            border: 2px solid #555;
+            border-radius: 50% / 60%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+
+        .eye::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: #555;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .eye.closed::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -2px;
+            width: 22px;
+            height: 2px;
+            background: #555;
+            transform: rotate(45deg);
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 </head>
 
 <body>
-
-    <!-- Back button -->
     <div class="back-container">
         <a href="../">← Back</a>
     </div>
 
-    <!-- Form card -->
     <div class="card">
         <h2>Create User</h2>
 
@@ -144,7 +182,7 @@
 
             <div class="form-group">
                 <label for="username">Username</label>
-                <input id="username" type="text" name="username" required>
+                <input id="username" type="text" name="username" autocomplete="off" required>
                 <div id="usernameMsg" class="msg"></div>
             </div>
 
@@ -156,9 +194,15 @@
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input id="password" type="password" name="password" required>
+
+                <div class="password-wrapper">
+                    <input id="password" type="password" name="password" autocomplete="new-password" required>
+                    <span id="togglePassword" class="eye"></span>
+                </div>
                 <div id="passwordMsg" class="msg"></div>
             </div>
+
+
 
 
             <div class="form-group">
@@ -174,7 +218,13 @@
     </div>
 
     <script>
+        $(window).on("load", function () {
+            $("#username").val("");
+            $("#password").val("");
+        });
         $(document).ready(function () {
+
+
             let usernameValid = false;
             let emailValid = false;
             let passwordValid = false;
@@ -278,6 +328,16 @@
             });
 
             toggleSubmit();
+
+            $("#togglePassword").on("click", function () {
+                const input = $("#password");
+                const isPassword = input.attr("type") === "password";
+
+                input.attr("type", isPassword ? "text" : "password");
+                $(this).toggleClass("closed", !isPassword);
+            });
+
+
         });
     </script>
 

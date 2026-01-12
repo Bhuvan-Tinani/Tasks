@@ -47,4 +47,5 @@ urlpatterns = [
     path("api/project/<int:project_id>/tasks/", views.get_project_tasks),
     path("api/comment/add-comment/",views.add_comment),
     path("api/comments/get-comments/<int:task_id>/",views.get_comments),
+    path("api/task/get-activitylog/<int:task_id>/",views.get_task_activity_log)
 ]

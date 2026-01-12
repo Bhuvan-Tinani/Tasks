@@ -13,8 +13,11 @@ from tasks.models.Users import Users
 from tasks.serailizers import ProjectSerializer
 from django.core import serializers
 from django.core.paginator import Paginator
-from django.db.models import Case, When, IntegerField, ExpressionWrapper, F
-from django.utils.timezone import now
+from django.db.models import Case, When, IntegerField
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import check_password
+
+
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset=Project.objects.all()
@@ -41,37 +44,42 @@ def check_session(request):
 
 @csrf_exempt
 def login(request):
-    res=check_session(request)
-    if res is not None:
+    res = check_session(request)
+    if res:
         return res
-    error=None
-    if request.method=="POST":
-        form=request.POST
-        username=form.get("username")
-        password=form.get("password")
+
+    error = None
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
         try:
-            user=Users.objects.get(
-                username=username,
-                password=password
-            )
-            request.session["user_id"]=user.id
-            request.session["username"]=user.username
-            request.session["role"]=user.role.name
-            request.session["email"]=user.email
-            if user.role.name == "admin":
-                response = redirect("tasks:admin")
-                response.set_cookie(
-                    key="user_id",
-                    value=user.id
-                )
-                return response
+            user = Users.objects.get(username=username)
+
+            # Compare hashed password
+            if not check_password(password, user.password):
+                error = "Invalid username or password"
             else:
-                return redirect("tasks:user")
+                # Login success
+                request.session["user_id"] = user.id
+                request.session["username"] = user.username
+                request.session["role"] = user.role.name
+                request.session["email"] = user.email
+
+                if user.role.name == "admin":
+                    response = redirect("tasks:admin")
+                    response.set_cookie("user_id", user.id)
+                    return response
+                else:
+                    return redirect("tasks:user")
+
         except Users.DoesNotExist:
-            error="username or password is incorrect"
+            error = "Invalid username or password"
         except Exception as err:
-            error=err
-    return render(request,"tasks/index.html",{"error":error})
+            error = str(err)
+
+    return render(request, "tasks/index.html", {"error": error})
 
 def logout(request):
     request.session.flush()
@@ -107,13 +115,15 @@ def register_user(request):
             return render(request,"tasks/signUp.html", {"msg":"username already exist"})
         try:
             role=Role.objects.get(name="user")
-            user=Users(
+            user = Users(
                 username=username,
                 email=email,
-                password=password,
+                password=make_password(password),
                 full_name=fullname,
                 role=role
             )
+            user.save()
+
             user.save()
             user.set_creator_and_note(user)
             user.save()
@@ -156,7 +166,7 @@ def add_user(request):
                 user=Users(
                     username=username,
                     email=email,
-                    password=password,
+                    password=make_password(password),
                     full_name=fullname,
                     role=role,
                     created_by=admin,
@@ -326,7 +336,6 @@ def assign_users(request):
     return render(request,"tasks/admin/assign_user_project.html",{"project":project})
 
 def assign_user_to_project(request):
-    print(request.method)
     admin_id = request.session.get("user_id")
     if not admin_id:
         return JsonResponse({"error": "Not logged in"}, status=401)
@@ -613,7 +622,8 @@ def get_project_users(request,project_id):
             "users": [
                 {
                     "id": user.id,
-                    "full_name": user.full_name
+                    "full_name": user.full_name,
+                    "username":user.username
                 }
                 for user in users
             ]
@@ -844,14 +854,17 @@ def get_project_tasks(request, project_id):
 
         return JsonResponse({
             "project_id": project_id,
-            "page": page,
+            "page": page_obj.number,
             "limit": limit,
             "total_tasks": paginator.count,
             "total_pages": paginator.num_pages,
             "has_next": page_obj.has_next(),
             "has_previous": page_obj.has_previous(),
+            "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
+            "previous_page": page_obj.previous_page_number() if page_obj.has_previous() else None,
             "tasks": result
         })
+
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
@@ -905,9 +918,28 @@ def get_comments(request, task_id):
             "user_id": c.user.id,
             "created_at": c.created_at.strftime("%Y-%m-%d %H:%M")
         } for c in comments]
-        print(data)
 
         return JsonResponse({"comments": data})
 
     except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+def get_task_activity_log(request, task_id):
+    try:
+        task = Task.objects.get(task_id=task_id)
+        activity_log = Activity_Log.objects.filter(task=task).order_by("-created_at")
+
+        data = [{
+            "id": a.id,
+            "action": a.action,
+            "old_value": a.old_value,
+            "new_value": a.new_value,
+            "created_at": a.created_at.strftime("%Y-%m-%d %H:%M"),
+            "user": a.user.username if a.user else "System"
+        } for a in activity_log]
+
+        return JsonResponse({"activity_log": data})
+
+    except Exception as e:
+        print(e)
         return JsonResponse({"error": str(e)}, status=400)

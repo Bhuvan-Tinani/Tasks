@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
@@ -12,22 +13,26 @@
             align-items: center;
             height: 100vh;
         }
+
         .login-box {
             background: #fff;
             padding: 25px;
             width: 300px;
             border-radius: 6px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         h2 {
             text-align: center;
             margin-bottom: 20px;
         }
+
         input {
             width: 100%;
             padding: 8px;
             margin: 8px 0;
         }
+
         button {
             width: 100%;
             padding: 8px;
@@ -37,37 +42,65 @@
             border: none;
             cursor: pointer;
         }
+
         button:hover {
             background: #0056b3;
         }
-       
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
-        $(document).ready(function(){
-            $("#signUp").click(function(){
-                window.location.href="../tasks/signUp"
+        $(document).ready(function () {
+            $("#signUp").click(function () {
+                window.location.href = "../tasks/signUp"
             })
+
+            $(".toggle-password").click(function () {
+                const passwordInput = $("#password");
+
+                if (passwordInput.attr("type") === "password") {
+                    passwordInput.attr("type", "text");
+                    $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    passwordInput.attr("type", "password");
+                    $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
         })
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
+
 <body>
 
-<div class="login-box">
-    <h2>Login</h2>
-    <form method="post" action="login">
-        {% csrf_token %}
-        {{error}}
-        {{msg}}
+    <div class="login-box">
+        <h2>Login</h2>
+        <form method="post" action="login">
+            {% csrf_token %}
+            {{error}}
+            {{msg}}
 
-        <input type="text" name="username" placeholder="Username" value="{{username}}" required>
+            <input type="text" name="username" placeholder="Username" value="{{username}}" required>
 
-        <input type="password" name="password" placeholder="Password" value="{{password}}" required>
+            <div style="position: relative;">
+                <input type="password" id="password" name="password" placeholder="Password" value="{{password}}" required>
 
-        <button type="submit">Login</button>
-        <button type="button" id="signUp">SignUp</button>
-    </form>
-</div>
+                <span class="fa fa-fw fa-eye field-icon toggle-password" style="
+                    position: absolute;
+                    right: 10px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    cursor: pointer;
+                    color: #555;
+                ">
+                </span>
+            </div>
+
+
+            <button type="submit">Login</button>
+            <button type="button" id="signUp">SignUp</button>
+        </form>
+    </div>
 
 </body>
+
 </html>
