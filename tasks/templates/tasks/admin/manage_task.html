@@ -774,39 +774,39 @@
                 });
             });
 
-            $.ajax({
-                url: "/tasks/admin/project/api/get_projects/",
-                type: "GET",
-                dataType: "json",
-                success: function (response) {
+                $.ajax({
+                    url: "/tasks/admin/project/api/get_projects/",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (response) {
 
-                    const projectData = JSON.parse(response.projects);
-                    const $projectList = $("#projectList").empty();
+                        const projectData = JSON.parse(response.projects);
+                        const $projectList = $("#projectList").empty();
 
-                    $.each(projectData, function (_, item) {
+                        $.each(projectData, function (_, item) {
 
-                        const $li = $("<li>")
-                            .text(item.fields.title)
-                            .attr("data-id", item.pk)
-                            .appendTo($projectList);
+                            const $li = $("<li>")
+                                .text(item.fields.title)
+                                .attr("data-id", item.pk)
+                                .appendTo($projectList);
 
-                        $li.on("click", function () {
-                            $("#projectList li").removeClass("active");
-                            $(this).addClass("active");
-                            const projectId = $(this).data("id");
-                            currentProjectId = projectId;
-                            getProjectDetail(projectId)
+                            $li.on("click", function () {
+                                $("#projectList li").removeClass("active");
+                                $(this).addClass("active");
+                                const projectId = $(this).data("id");
+                                currentProjectId = projectId;
+                                getProjectDetail(projectId)
+                            });
                         });
-                    });
-                    $("#projectList li:first").addClass("active");
-                    getProjectDetail(projectData[0].pk);
-                    currentProjectId = projectData[0].pk;
+                        $("#projectList li:first").addClass("active");
+                        getProjectDetail(projectData[0].pk);
+                        currentProjectId = projectData[0].pk;
 
-                },
-                error: function (xhr, status, error) {
-                    console.error(xhr.status, xhr.responseText);
-                }
-            });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.status, xhr.responseText);
+                    }
+                });
 
             function getProjectDetail(project_id) {
                 $.ajax({

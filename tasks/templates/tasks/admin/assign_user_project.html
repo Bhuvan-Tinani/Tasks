@@ -12,17 +12,47 @@
             margin: 0;
             font-family: "Segoe UI", Arial, sans-serif;
             background: #f4f6f9;
-            padding: 30px;
         }
 
-        .back-container {
-            margin-bottom: 15px;
+        /* HEADER */
+        .top-header {
+            background: linear-gradient(135deg, #2e6193 0%, #1565c0 100%);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
         }
 
-        .back-container a {
-            text-decoration: none;
-            font-weight: 600;
-            color: #007bff;
+        .top-header img {
+            height: 38px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        .logout-btn i {
+            font-size: 16px;
+        }
+
+        .container {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
         }
 
         .card {
@@ -30,30 +60,26 @@
             padding: 20px;
             border-radius: 6px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 900px;
-            margin: auto;
-        }
-
-        h2 {
-            margin-top: 0;
+            width: 900px;
         }
 
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 18px;
             margin-top: 20px;
         }
 
         .box {
             border: 1px solid #ddd;
             border-radius: 4px;
-            padding: 15px;
+            padding: 14px;
         }
 
         .box h3 {
             margin-top: 0;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: 600;
         }
 
         .user-row {
@@ -64,8 +90,9 @@
             border-bottom: 1px solid #eee;
         }
 
-        .user-row:last-child {
-            border-bottom: none;
+        .empty {
+            font-size: 13px;
+            color: #777;
         }
 
         button {
@@ -86,52 +113,74 @@
             color: white;
         }
 
-        .empty {
-            font-size: 13px;
-            color: #888;
+        .project-info {
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .logo-wrapper {
+            background: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-wrapper img {
+            height: 32px;
+            display: block;
         }
     </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body>
 
-    <div class="back-container">
-        <a href="manage_project">← Back</a>
+    <!-- HEADER -->
+    <div class="top-header">
+        <div class="logo-wrapper">
+            <img src="https://d1s24u4ln0wd0i.cloudfront.net/website/new_ecom_asset/logo1.webp" alt="Medkart Logo">
+        </div>
+        <div style="display:flex; gap:10px;">
+
+            <button class="logout-btn" onclick="window.history.back()">
+                <i class="fa fa-arrow-left"></i> 
+            </button>
+            <button class="logout-btn" onclick="window.location.href='/logout'">
+                <i class="fa fa-power-off"></i> Logout
+            </button>
+        </div>
+
     </div>
 
-    <div class="card">
-        <h2>Assign Users</h2>
+    <div class="container">
+        <div class="card">
+            <h2>Assign Users</h2>
 
-        {% if project %}
-        <p><strong>ID:</strong> {{ project.id }}</p>
-        <p><strong>Project:</strong> {{ project.title }}</p>
-        <p><strong>Description:</strong> {{ project.detail }}</p>
-        {% else %}
-        <p style="color:red;">Project not found</p>
-        {% endif %}
+            <div class="project-info">
+                {% if project %}
+                <p><strong>ID:</strong> {{ project.id }}</p>
+                <p><strong>Project:</strong> {{ project.title }}</p>
+                <p><strong>Description:</strong> {{ project.detail }}</p>
+                {% else %}
+                <p style="color:red;">Project not found</p>
+                {% endif %}
+            </div>
 
-        <div class="grid" id="userGrid">
-
+            <div class="grid" id="userGrid"></div>
         </div>
     </div>
 
     <script>
         $(document).ready(function () {
-
             const projectId = "{{ project.id }}";
-
             loadUsers();
 
             function loadUsers() {
                 $.get(`/api/project/${projectId}/users/`, function (res) {
-                    console.log(res);
-                    
-
-                    if (res.error) {
-                        alert(res.error);
-                        return;
-                    }
-
                     let html = `
                         <div class="box">
                             <h3>Assigned Users</h3>
@@ -142,13 +191,10 @@
                     } else {
                         res.assigned_users.forEach(u => {
                             html += `
-                        <div class="user-row">
-                            <span>${u.username}</span>
-                            <button class="unassign-btn" data-user="${u.id}">
-                                Unassign
-                            </button>
-                        </div>
-                    `;
+                            <div class="user-row">
+                                <span>${u.username}</span>
+                                <button class="unassign-btn" data-user="${u.id}">Unassign</button>
+                            </div>`;
                         });
                     }
 
@@ -160,51 +206,39 @@
                     } else {
                         res.unassigned_users.forEach(u => {
                             html += `
-                        <div class="user-row">
-                            <span>${u.username}</span>
-                            <button class="assign-btn" data-user="${u.id}">
-                                Assign
-                            </button>
-                        </div>
-                    `;
+                            <div class="user-row">
+                                <span>${u.username}</span>
+                                <button class="assign-btn" data-user="${u.id}">Assign</button>
+                            </div>`;
                         });
                     }
 
                     html += `</div>`;
-
                     $("#userGrid").html(html);
                 });
             }
 
-            // Assign user
             $(document).on("click", ".assign-btn", function () {
                 const userId = $(this).data("user");
-
                 $.post("/api/project/assign-user/", {
                     project_id: projectId,
                     user_id: userId,
                     csrfmiddlewaretoken: "{{ csrf_token }}"
-                }, function () {
-                    loadUsers();
-                });
+                }, loadUsers);
             });
 
-            // Unassign user
             $(document).on("click", ".unassign-btn", function () {
                 const userId = $(this).data("user");
 
-                $.post("/api/project/unassign-user/", {
+                $.post("/tasks/api/project/unassign-user/", {
                     project_id: projectId,
-                    user_id: userId,
+                    "user_ids[]": userId,
                     csrfmiddlewaretoken: "{{ csrf_token }}"
-                }, function () {
-                    loadUsers();
-                });
+                }, loadUsers);
             });
 
         });
     </script>
-
 
 </body>
 

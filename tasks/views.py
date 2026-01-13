@@ -13,7 +13,7 @@ from tasks.models.Users import Users
 from tasks.serailizers import ProjectSerializer
 from django.core import serializers
 from django.core.paginator import Paginator
-from django.db.models import Case, When, IntegerField
+from django.db.models import Case, When, IntegerField,Count
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 
@@ -141,10 +141,18 @@ def user_dashboard(request):
     return render(request,"tasks/index.html")
 
 def manage_user(request):
-    users = Users.objects.all()
+    users = Users.objects.all().order_by("-id")  # Optional ordering
+
+    # ⬇ Pagination params
+    page = int(request.GET.get("page", 1))
+    limit = int(request.GET.get("limit", 10))
+
+    paginator = Paginator(users, limit)
+    page_obj = paginator.get_page(page)
+
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         users_data = []
-        for user in users:
+        for user in page_obj:
             users_data.append({
                 "id": user.id,
                 "username": user.username,
@@ -153,10 +161,23 @@ def manage_user(request):
                 "role": user.role.name if user.role else "",
                 "created_by": user.created_by.username if user.created_by else "",
                 "created_at": user.created_at.strftime("%Y-%m-%d %H:%M") if user.created_at else "",
-                "note": user.note
+                "note": user.note,
             })
-        return JsonResponse({"users": users_data})
-    return render(request,"tasks/admin/manage_user.html",{"users":users})
+
+        return JsonResponse({
+            "users": users_data,
+            "page": page_obj.number,
+            "limit": limit,
+            "total_users": paginator.count,
+            "total_pages": paginator.num_pages,
+            "has_next": page_obj.has_next(),
+            "has_previous": page_obj.has_previous(),
+            "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
+            "previous_page": page_obj.previous_page_number() if page_obj.has_previous() else None,
+        })
+
+    # For normal page load
+    return render(request, "tasks/admin/manage_user.html")
 
 def add_user(request):
     if request.method=="GET":
@@ -307,26 +328,8 @@ def assign_users_to_project(request):
             return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"message": "call appropriate method"}, status=403)
 
-def unassign_user_from_project(request):
-    if request.method=="POST":
-        project_id = request.POST.get("project_id")
-        user_ids = request.POST.getlist("user_ids[]")
 
-        admin = Users.objects.get(id=request.session.get("user_id"))
 
-        if admin.role.name != "admin":
-            return JsonResponse({"error": "Unauthorized"}, status=403)
-
-        deleted, _ = Project_User.objects.filter(
-            project_id=project_id,
-            user_id__in=user_ids
-        ).delete()
-
-        return JsonResponse({
-            "message": "Users unassigned successfully",
-            "count": deleted
-        })
-    return JsonResponse({"message": "call appropriate method"}, status=403)
 
 def get_project_users_admin(request, project_id):
     try:
@@ -386,37 +389,49 @@ def assign_user_to_project(request):
     return JsonResponse({"message": "User assigned"})
 
 def unassign_user_from_project(request):
-    try:
-        admin_id = request.session.get("user_id")
-        if not admin_id:
-            return JsonResponse({"error": "Not logged in"}, status=401)
+    if request.method == "POST":
+        project_id = request.POST.get("project_id")
+        user_ids = request.POST.getlist("user_ids[]")
 
-        admin = Users.objects.get(id=admin_id)
+        admin = Users.objects.get(id=request.session.get("user_id"))
 
         if admin.role.name != "admin":
-            return JsonResponse({"error": "Only admin can unassign users"}, status=403)
+            return JsonResponse({"error": "Unauthorized"}, status=403)
 
-        project_id = request.POST.get("project_id")
-        user_id = request.POST.get("user_id")
-
-        if not project_id or not user_id:
-            return JsonResponse(
-                {"error": "project_id and user_id are required"},
-                status=400
-            )
-
+        # STEP 1 — Unassign from PROJECT
         deleted, _ = Project_User.objects.filter(
             project_id=project_id,
-            user_id=user_id
+            user_id__in=user_ids
         ).delete()
 
-        if deleted == 0:
-            return JsonResponse({"message": "User was not assigned"})
+        # STEP 2 — Unassign from TASKS of that project
+        tasks = Task.objects.filter(
+            project_id=project_id,
+            assigned_to_id__in=user_ids
+        )
 
-        return JsonResponse({"message": "User unassigned successfully"})
+        for task in tasks:
+            old_user = task.assigned_to
+            task.assigned_to = None
+            task.updated_by = admin
+            task.save()
 
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
+            # STEP 3 — Log activity
+            Activity_Log.objects.create(
+                task=task,
+                action="User Unassigned",
+                old_value=old_user.full_name if old_user else None,
+                new_value="None",
+                user=admin
+            )
+
+        return JsonResponse({
+            "message": "Users unassigned successfully",
+            "project_unassigned_count": deleted,
+            "task_unassigned_count": tasks.count()
+        })
+
+    return JsonResponse({"message": "call appropriate method"}, status=405)
     
 def project_users(project):
     users = Users.objects.filter(
@@ -816,26 +831,39 @@ def get_project_tasks(request, project_id):
         page = int(request.GET.get("page", 1))
         limit = int(request.GET.get("limit", 10))
 
+        title = request.GET.get("title", "").strip()
+        priority = request.GET.get("priority", "").lower().strip()
+        status = request.GET.get("status", "").strip()
+        print(status)
+
+        # ---- PROJECT INFO ----
+        project = Project.objects.get(id=project_id)
+
+        assigned_users = Project_User.objects.filter(project=project).select_related("user")
+
+        users_data = [{
+            "id": pu.user.id,
+            "username": pu.user.username,
+            "full_name": pu.user.full_name,
+            "role": pu.user.role.name if pu.user.role else None,
+        } for pu in assigned_users]
+
         tasks = Task.objects.filter(project_id=project_id).select_related(
             "assigned_to", "created_by", "updated_by", "project_id"
+        ).annotate(
+            comment_count=Count("comments__id")
         )
-        # for task in tasks:
-        #     print(task.due_date,current_time)
-        #     print(current_time<=task.due_date)
 
-        # # Optional filters
-        # status = request.GET.get("status")
-        # priority = request.GET.get("priority")
-        # assigned_to = request.GET.get("assigned_to")
+        # === FILTERS ===
+        if title:
+            tasks = tasks.filter(title__icontains=title)
 
-        # if status:
-        #     tasks = tasks.filter(status=status)
-        # if priority:
-        #     tasks = tasks.filter(priority=priority)
-        # if assigned_to:
-        #     tasks = tasks.filter(assigned_to_id=assigned_to)
+        if priority and priority in ["high", "medium", "low"]:
+            tasks = tasks.filter(priority=priority)
 
-        # # ---- SORT & OVERDUE CALC ----
+        if status and status in ["Todo", "In Progress", "Under Review", "Done"]:
+            tasks = tasks.filter(status=status)
+
         today = timezone.localdate()
 
         tasks = tasks.annotate(
@@ -859,30 +887,38 @@ def get_project_tasks(request, project_id):
         paginator = Paginator(tasks, limit)
         page_obj = paginator.get_page(page)
 
-        result = []
-
+        tasks_data = []
         for task in page_obj:
             due = task.due_date.date()
             overdue_days = (today - due).days if due < today and task.status != "Done" else 0
 
-            result.append({
+            tasks_data.append({
                 "task_id": task.task_id,
                 "title": task.title,
                 "status": task.status,
                 "priority": task.priority,
                 "due_date": task.due_date.strftime("%Y-%m-%d"),
                 "assigned_to": task.assigned_to.full_name if task.assigned_to else None,
+                "assigned_to_id": task.assigned_to.id if task.assigned_to else None,
                 "created_by": task.created_by.full_name if task.created_by else None,
                 "updated_by": task.updated_by.full_name if task.updated_by else None,
                 "project": task.project_id.title,
                 "created_at": task.created_at.strftime("%Y-%m-%d %H:%M"),
-                "assigned_to_id": task.assigned_to.id if task.assigned_to else None,
                 "overdue_days": overdue_days,
-                "is_overdue": overdue_days > 0
-            })  
-
+                "is_overdue": overdue_days > 0,
+                "comment_count": task.comment_count
+            })
 
         return JsonResponse({
+            "project": {
+                "id": project.id,
+                "title": project.title,
+                "detail": project.detail,
+                "status": project.status if hasattr(project, "status") else None,
+                "created_by": project.created_by.full_name if hasattr(project, "created_by") else None,
+            },
+            "assigned_users": users_data,
+
             "project_id": project_id,
             "page": page_obj.number,
             "limit": limit,
@@ -892,12 +928,13 @@ def get_project_tasks(request, project_id):
             "has_previous": page_obj.has_previous(),
             "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
             "previous_page": page_obj.previous_page_number() if page_obj.has_previous() else None,
-            "tasks": result
+            "tasks": tasks_data
         })
-
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+
 
 def add_comment(request):
     if request.method != "POST":
