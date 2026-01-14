@@ -43,12 +43,15 @@ def check_session(request):
     
 
 @csrf_exempt
+
 def login(request):
     res = check_session(request)
     if res:
         return res
 
     error = None
+    username = ""
+    password=""
 
     if request.method == "POST":
         username = request.POST.get("username")
@@ -79,11 +82,13 @@ def login(request):
         except Exception as err:
             error = str(err)
 
-    return render(request, "tasks/index.html", {"error": error})
+
+    return render(request, "tasks/index.html", {"error": error, "username": username, "active_tab": "login"})
 
 def logout(request):
     request.session.flush()
-    return render(request,"tasks/index.html")
+    return redirect("tasks:index")
+    # return render(request,"tasks/index.html")
 
 def manage_project(request):
     return render(request,"tasks/admin/manage_project.html")
@@ -103,16 +108,26 @@ def signUp(request):
 
 def register_user(request):
     msg=None
-    username=None
-    password=None
+    status=None
+    active_tab="signup"
+    context = {"active_tab": active_tab}
+
     if request.method=="POST":
         form=request.POST
         username=form.get("username")
         password=form.get("password")
         email=form.get("email")
         fullname=form.get("fullname")
+        
+        context.update({
+            "signup_username": username,
+            "signup_email": email,
+            "signup_fullname": fullname
+        })
+
         if Users.objects.filter(username=username).exists():
-            return render(request,"tasks/signUp.html", {"msg":"username already exist"})
+            context.update({"msg": "Username already exists", "status": "error"})
+            return render(request, "tasks/index.html", context)
         try:
             role=Role.objects.get(name="user")
             user = Users(
@@ -127,11 +142,19 @@ def register_user(request):
             user.save()
             user.set_creator_and_note(user)
             user.save()
-            msg="user registered successfully"
+            
+            # On success, switch to login tab and pre-fill username
+            return render(request, "tasks/index.html", {
+                "msg": "User registered successfully",
+                "status": "success",
+                "active_tab": "login",
+                "username": username
+            })
         except Exception as err:
             print(err)
-            return render(request,"tasks/signUp.html",{ "msg":str(err)})
-    return render(request,"tasks/index.html",{"msg":msg,"username":username,"password":password})
+            context.update({"msg": str(err), "status": "error"})
+            return render(request, "tasks/index.html", context)
+    return render(request, "tasks/index.html", context)
 
 def user_dashboard(request):
     if request.session.get("role") == "user":
@@ -834,6 +857,7 @@ def get_project_tasks(request, project_id):
         title = request.GET.get("title", "").strip()
         priority = request.GET.get("priority", "").lower().strip()
         status = request.GET.get("status", "").strip()
+        assigned_to = request.GET.get("assigned_to", "").strip()
         print(status)
 
         # ---- PROJECT INFO ----
@@ -863,6 +887,9 @@ def get_project_tasks(request, project_id):
 
         if status and status in ["Todo", "In Progress", "Under Review", "Done"]:
             tasks = tasks.filter(status=status)
+
+        if assigned_to:
+            tasks = tasks.filter(assigned_to_id=assigned_to)
 
         today = timezone.localdate()
 

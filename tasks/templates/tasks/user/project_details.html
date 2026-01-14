@@ -927,6 +927,15 @@
       font-size: 10px;
       margin-left: 4px;
     }
+    .filter-hidden {
+      display: none;
+    }
+    .task-filters select, .task-filters input {
+        padding: 6px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 13px;
+    }
   </style>
 </head>
 
@@ -999,6 +1008,27 @@
         <div class="col-tasks">
           <div class="tasks-header">
             <h3>Tasks</h3>
+            <div class="task-filters" style="display: flex; gap: 10px; margin-left: auto; margin-right: 10px;">
+                <select id="searchType">
+                  <option value="title">Title</option>
+                  <option value="priority">Priority</option>
+                  <option value="status">Status</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Search title..." />
+                <select id="priorityFilter" class="filter-hidden">
+                  <option value="">All</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+                <select id="statusFilter" class="filter-hidden">
+                  <option value="">All</option>
+                  <option value="Todo">Todo</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Done">Done</option>
+                </select>
+            </div>
             <div style="display: flex; gap: 10px">
               <button id="myTasksBtn" class="btn-sm">My Tasks</button>
               <button id="allTasksBtn" class="btn-sm">All Tasks</button>
@@ -1171,6 +1201,7 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script>
     const SESSION_USER_ID = "{{ request.session.user_id }}";
+    let showMyTasksOnly = false;
 
     $(document).ready(function () {
       const modal = $("#taskModal");
@@ -1228,36 +1259,17 @@
       });
 
       $("#myTasksBtn").on("click", function () {
-        const userId = "{{ request.session.user_id }}";
-        $("table tbody tr").each(function () {
-          const assignedTo = $(this).find("td:nth-child(4)").text();
-          if (assignedTo.includes("(You)")) {
-            $(this).show();
-          } else {
-            $(this).hide();
-          }
-        });
+        showMyTasksOnly = true;
+        $(this).css("background-color", "#1565c0"); // Active indication
+        $("#allTasksBtn").css("background-color", "#1976d2");
+        applyFilters();
       });
 
       $("#allTasksBtn").on("click", function () {
-        $("table tbody tr").show();
-      });
-
-      const userId = "{{ request.session.user_id }}";
-
-      $("#myTasksBtn").on("click", function () {
-        $("tbody tr").each(function () {
-          const assigned = $(this).find(".assigned-user").text();
-          if (assigned.includes("(You)")) {
-            $(this).show();
-          } else {
-            $(this).hide();
-          }
-        });
-      });
-
-      $("#allTasksBtn").on("click", function () {
-        $("tbody tr").show();
+        showMyTasksOnly = false;
+        $(this).css("background-color", "#1565c0"); // Active indication
+        $("#myTasksBtn").css("background-color", "#1976d2");
+        applyFilters();
       });
 
       $(document).on("click", ".btn-edit", function () {
@@ -1455,11 +1467,51 @@
           },
         });
       });
+
+      $("#searchType").on("change", function () {
+        const type = $(this).val();
+
+        $("#searchInput").toggle(type === "title");
+        $("#priorityFilter").toggle(type === "priority");
+        $("#statusFilter").toggle(type === "status");
+
+        // Trigger new filter on change
+        applyFilters();
+      });
+
+      $("#searchInput, #priorityFilter, #statusFilter").on("input change", function () {
+        applyFilters();
+      });
+
+      function applyFilters() {
+        currentProjectId = $("#projectInfo").data("project-id");
+        if(currentProjectId) loadTasks(currentProjectId);
+      }
     });
 
     function loadTasks(projectId, page = 1, limit = 10) {
+      const searchType = $("#searchType").val();
+      let query = `page=${page}&limit=${limit}`;
+
+      if (searchType === "title") {
+        const title = $("#searchInput").val();
+        if (title) query += `&title=${encodeURIComponent(title)}`;
+      }
+      if (searchType === "priority") {
+        const val = $("#priorityFilter").val();
+        if (val) query += `&priority=${val}`;
+      }
+      if (searchType === "status") {
+        const val = $("#statusFilter").val();
+        if (val) query += `&status=${encodeURIComponent(val)}`;
+      }
+      if (showMyTasksOnly) {
+        query += `&assigned_to=${SESSION_USER_ID}`;
+      }
+
       $.ajax({
         url: `/tasks/api/project/${projectId}/tasks/?page=${page}&limit=${limit}`,
+        url: `/tasks/api/project/${projectId}/tasks/?${query}`,
         type: "GET",
         dataType: "json",
         success: function (res) {
@@ -1572,7 +1624,7 @@
         const p = $(this).data("page");
         currentProjectId = $("#projectInfo").data("project-id");
 
-        if (p) loadProjectTasks(currentProjectId, p);
+        if (p) loadTasks(currentProjectId, p);
       });
     }
 
