@@ -1,0 +1,124 @@
+body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        /* HEADER */
+        .top-header {
+            background: linear-gradient(135deg, #2e6193 0%, #1565c0 100%);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .top-header img {
+            height: 38px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        .logout-btn i {
+            font-size: 16px;
+        }
+
+        .container {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 900px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 20px;
+        }
+
+        .box {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 14px;
+        }
+
+        .box h3 {
+            margin-top: 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .user-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .empty {
+            font-size: 13px;
+            color: #777;
+        }
+
+        button {
+            border: none;
+            padding: 5px 10px;
+            font-size: 13px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .assign-btn {
+            background: #198754;
+            color: white;
+        }
+
+        .unassign-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .project-info {
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .logo-wrapper {
+            background: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-wrapper img {
+            height: 32px;
+            display: block;
+        }

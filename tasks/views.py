@@ -60,15 +60,14 @@ def login(request):
         try:
             user = Users.objects.get(username=username)
 
-            # Compare hashed password
             if not check_password(password, user.password):
                 error = "Invalid username or password"
             else:
-                # Login success
                 request.session["user_id"] = user.id
                 request.session["username"] = user.username
                 request.session["role"] = user.role.name
                 request.session["email"] = user.email
+                request.session["name"]=user.full_name
 
                 if user.role.name == "admin":
                     response = redirect("tasks:admin")
@@ -143,7 +142,6 @@ def register_user(request):
             user.set_creator_and_note(user)
             user.save()
             
-            # On success, switch to login tab and pre-fill username
             return render(request, "tasks/index.html", {
                 "msg": "User registered successfully",
                 "status": "success",
@@ -164,9 +162,8 @@ def user_dashboard(request):
     return render(request,"tasks/index.html")
 
 def manage_user(request):
-    users = Users.objects.all().order_by("-id")  # Optional ordering
+    users = Users.objects.all().order_by("-id")  
 
-    # ⬇ Pagination params
     page = int(request.GET.get("page", 1))
     limit = int(request.GET.get("limit", 10))
 
@@ -199,7 +196,6 @@ def manage_user(request):
             "previous_page": page_obj.previous_page_number() if page_obj.has_previous() else None,
         })
 
-    # For normal page load
     return render(request, "tasks/admin/manage_user.html")
 
 def add_user(request):
@@ -421,13 +417,11 @@ def unassign_user_from_project(request):
         if admin.role.name != "admin":
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
-        # STEP 1 — Unassign from PROJECT
         deleted, _ = Project_User.objects.filter(
             project_id=project_id,
             user_id__in=user_ids
         ).delete()
 
-        # STEP 2 — Unassign from TASKS of that project
         tasks = Task.objects.filter(
             project_id=project_id,
             assigned_to_id__in=user_ids
@@ -439,7 +433,6 @@ def unassign_user_from_project(request):
             task.updated_by = admin
             task.save()
 
-            # STEP 3 — Log activity
             Activity_Log.objects.create(
                 task=task,
                 action="User Unassigned",
@@ -496,24 +489,31 @@ def create_task(request):
         if not all([title, description, priority, due_date, project_id]):
             return JsonResponse({"error": "All fields are required"}, status=400)
 
+        project = get_object_or_404(Project, id=project_id)
+
+        if session_user.role.name != "admin":   
+            if not Project_User.objects.filter(project=project, user=session_user).exists():
+                return JsonResponse({"error": "You are not assigned to this project"}, status=403)
+
         assigned_to = None
         if assigned_to_id:
             assigned_to = get_object_or_404(Users, id=assigned_to_id)
 
-        project = get_object_or_404(Project, id=project_id)
+            if not Project_User.objects.filter(project=project, user=assigned_to).exists():
+                return JsonResponse({"error": "Assigned user is not part of this project"}, status=400)
 
         task = Task.objects.create(
             title=title,
             description=description,
             priority=priority,
             due_date=due_date,
-            status="Todo",              
-            assigned_to=assigned_to,    
-            created_by=session_user,    
-            updated_by=session_user,    
-            project_id=project          
+            status="Todo",
+            assigned_to=assigned_to,
+            created_by=session_user,
+            updated_by=session_user,
+            project_id=project
         )
-        
+
         Activity_Log.objects.create(
             task=task,
             action="Task Created",
@@ -539,6 +539,7 @@ def create_task(request):
     except Exception as e:
         print(e)
         return JsonResponse({"error": str(e)}, status=400)
+
     
 def update_task(request):
     try:
@@ -559,11 +560,26 @@ def update_task(request):
         if not all([title, description, priority, due_date]):
             return JsonResponse({"error": "All fields are required"}, status=400)
 
+        task = Task.objects.select_related("project_id", "assigned_to").get(task_id=task_id)
+        project = task.project_id
+
+
+        if session_user.role.name != "admin":
+
+            is_member = Project_User.objects.filter(
+                project_id=project.id,
+                user_id=session_user.id
+            ).exists()
+
+            if not is_member or task.assigned_to_id != session_user.id:
+                return JsonResponse({
+                    "error": "You are not allowed to update this task"
+                }, status=403)
+
+
         assigned_to = None
         if assigned_to_id:
             assigned_to = get_object_or_404(Users, id=assigned_to_id)
-
-        task = Task.objects.get(task_id=task_id)
 
         old_title = task.title
         old_description = task.description
@@ -598,7 +614,6 @@ def update_task(request):
         if old_assigned_to != new_assigned:
             changes.append(("assigned_to", old_assigned_to, new_assigned))
 
-        # ---- STEP 4: Save each change to activity log ----
         for field, old, new in changes:
             Activity_Log.objects.create(
                 task=task,
@@ -617,6 +632,7 @@ def update_task(request):
     except Exception as e:
         print(e)
         return JsonResponse({"error": str(e)}, status=400)
+
     
 def manage_task(request):
     return render(request,"tasks/admin/manage_task.html")
@@ -737,7 +753,6 @@ def admin_save_task(request):
                 project_id=project
             )
 
-            # 🔻 Log activity
             Activity_Log.objects.create(
                 task=task,
                 user=session_user,
@@ -746,7 +761,6 @@ def admin_save_task(request):
                 new_value=f"Task '{title}' created"
             )
 
-            # 🔻 If assigned to someone else, log assignment too
             if assigned_to and assigned_to != session_user:
                 Activity_Log.objects.create(
                     task=task,
@@ -798,8 +812,20 @@ def task_next_state(request, task_id):
 
         STATUS_FLOW = ('Todo', 'In Progress', 'Under Review', 'Done')
 
-        task = Task.objects.get(task_id=task_id)
+        task = Task.objects.select_related("project_id", "assigned_to").get(task_id=task_id)
+        project = task.project_id
         old_state = task.status
+        if user.role.name != "admin":
+            is_member = Project_User.objects.filter(
+                project_id=project.id,
+                user_id=user.id
+            ).exists()
+
+            if not is_member or task.assigned_to_id != user.id:
+                return JsonResponse({
+                    "error": "You are not allowed to update this task status"
+                }, status=403)
+
 
         if old_state not in STATUS_FLOW:
             return JsonResponse({"error": "Invalid task status"}, status=400)
@@ -834,12 +860,14 @@ def task_next_state(request, task_id):
             "new": new_state,
             "completed": False
         })
- 
+
     except Task.DoesNotExist:
         return JsonResponse({"error": "Task not found"}, status=404)
 
     except Exception as e:
+        print(e)
         return JsonResponse({"error": str(e)}, status=400)
+
 
 
 def get_task_current_state(request,task_id):
@@ -860,7 +888,6 @@ def get_project_tasks(request, project_id):
         assigned_to = request.GET.get("assigned_to", "").strip()
         print(status)
 
-        # ---- PROJECT INFO ----
         project = Project.objects.get(id=project_id)
 
         assigned_users = Project_User.objects.filter(project=project).select_related("user")
@@ -878,7 +905,6 @@ def get_project_tasks(request, project_id):
             comment_count=Count("comments__id")
         )
 
-        # === FILTERS ===
         if title:
             tasks = tasks.filter(title__icontains=title)
 
@@ -981,6 +1007,19 @@ def add_comment(request):
             return JsonResponse({"error": "Invalid data"}, status=400)
 
         task = Task.objects.get(task_id=task_id)
+        project = task.project_id  
+
+        # === CHECK PROJECT MEMBERSHIP ===
+        if user.role.name != "admin":  # admin can always comment
+            is_member = Project_User.objects.filter(
+                project=project,
+                user=user
+            ).exists()
+
+            if not is_member:
+                return JsonResponse({"error": "You are not assigned to this project"}, status=403)
+
+        # === ADD COMMENT ===
         comment = Comments.objects.create(
             comment=comment_text,
             task=task,
@@ -996,14 +1035,33 @@ def add_comment(request):
                 "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M")
             }
         })
+
     except Exception as e:
         print(e)
         return JsonResponse({"error": str(e)}, status=400)
 
+
 def get_comments(request, task_id):
     try:
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return JsonResponse({"error": "Login required"}, status=401)
+
+        user = Users.objects.get(id=user_id)
+        task = Task.objects.select_related("project_id").get(task_id=task_id)
+        project = task.project_id
+
+        if user.role.name != "admin":
+            is_member = Project_User.objects.filter(
+                project_id=project.id,
+                user_id=user.id
+            ).exists()
+
+            if not is_member:
+                return JsonResponse({"error": "Unauthorized to view comments"}, status=403)
+
         comments = Comments.objects.filter(task_id=task_id).select_related("user") \
-                                  .order_by("created_at")   # oldest first
+                                  .order_by("created_at")
 
         data = [{
             "id": c.id,
@@ -1015,8 +1073,12 @@ def get_comments(request, task_id):
 
         return JsonResponse({"comments": data})
 
+    except Task.DoesNotExist:
+        return JsonResponse({"error": "Task not found"}, status=404)
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
 
 def get_task_activity_log(request, task_id):
     try:

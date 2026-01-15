@@ -1,609 +1,139 @@
-    <!DOCTYPE html>
-    {% load static %}
-    <html lang="en">
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <title>Login</title>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="{% static 'toast.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            let serverMsg = "{{ msg|default:'' }}";
+            let serverError = "{{ error|default:'' }}";
+            let status = "{{ status|default:'info' }}";
+            let activeTab = "{{ active_tab|default:'login' }}";
+
+            if (activeTab === 'signup') {
+                $('a[href="#signup"]').click();
+            } else {
+                $('a[href="#login"]').click();
             }
 
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                height: 100vh;
-                display: flex;
-                overflow: hidden;
-                background: #f8f9fa;
+            if (serverError) showToast(serverError, 'error');
+            if (serverMsg) {
+                showToast(serverMsg, status === 'success' ? 'success' : 'error');
             }
-
-            .container {
-                display: flex;
-                width: 100%;
-                height: 100%;
-            }
-
-            .left-section {
-                flex: 0 0 25%;
-                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                padding: 40px;
-                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            }
-
-            .middle-divider {
-                flex: 0 0 auto;
-                width: 80px;
-                height: 100%;
-                background: #fff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                border-left: 2px solid #e8e8e8;
-                border-right: 2px solid #e8e8e8;
-            }
-
-            .medkart-symbol {
-                font-size: 60px;
-                color: #1976D2;
-                font-weight: bold;
-                letter-spacing: 2px;
-            }
-
-            .right-section {
-                flex: 0 0 75%;
-                background: linear-gradient(135deg, #113c67 0%, #1b5fab 100%);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                padding: 60px 40px;
-                color: white;
-            }
-
-            .login-box {
-                background: #fff;
-                padding: 30px;
-                width: 100%;
-                max-width: 350px;
-                border-radius: 0;
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            }
-
-            .right-section .login-box {
-                background: rgba(255, 255, 255, 0.95);
-                color: #333;
-            }
-
-            /* Tab Navigation */
-            .nav-tabs {
-                list-style: none;
-                display: flex;
-                border-bottom: 2px solid #e8e8e8;
-                margin-bottom: 30px;
-                padding: 0;
-            }
-
-            .nav-item {
-                flex: 1;
-            }
-
-            .nav-link {
-                display: block;
-                padding: 12px 20px;
-                text-align: center;
-                color: #999;
-                text-decoration: none;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 10px;
-                border-bottom: 3px solid transparent;
-                transition: all 0.3s ease;
-                margin-bottom: -2px;
-            }
-
-            .nav-link:hover {
-                color: #1976D2;
-            }
-
-            .nav-link.active {
-                color: #1976D2;
-                border-bottom-color: #1976D2;
-            }
-
-            .tab-content {
-                display: none;
-            }
-
-            .tab-content.show {
-                display: block;
-                animation: fadeIn 0.3s ease;
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(-10px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
-            h2 {
-                text-align: center;
-                margin-bottom: 25px;
-                color: #1976D2;
-                font-size: 24px;
-                font-weight: 600;
-            }
-
-            .right-section h2 {
-                color: #1565C0;
-            }
-
-            input {
-                width: 100%;
-                padding: 12px;
-                margin: 10px 0;
-                border: 2px solid #e8e8e8;
-                border-radius: 6px;
-                font-size: 14px;
-                transition: all 0.3s ease;
-                background: #fafafa;
-            }
-
-            input:focus {
-                outline: none;
-                border-color: #1976D2;
-                background: #fff;
-                box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-            }
-
-            button {
-                width: 100%;
-                padding: 12px;
-                margin: 12px 0;
-                background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
-                color: #fff;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 15px;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
-            }
-
-            button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
-            }
-
-            button:active {
-                transform: translateY(0);
-            }
-
-            button:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-                transform: none;
-            }
-
-            .right-section button {
-                background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
-            }
-
-            .right-section button:hover {
-                transform: translateY(-2px);
-            }
-
-            .field-icon {
-                position: absolute;
-                right: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                cursor: pointer;
-                color: #999;
-            }
-
-            .password-container {
-                position: relative;
-                margin: 10px 0;
-            }
-
-            .error-msg {
-                color: #d32f2f;
-                font-size: 13px;
-                margin-bottom: 15px;
-                text-align: center;
-                padding: 10px 12px;
-                background: #ffebee;
-                border-radius: 6px;
-                border-left: 4px solid #d32f2f;
-            }
-
-            .success-msg {
-                color: #388e3c;
-                font-size: 13px;
-                margin-bottom: 15px;
-                text-align: center;
-                padding: 10px 12px;
-                background: #e8f5e9;
-                border-radius: 6px;
-                border-left: 4px solid #388e3c;
-            }
-
-            .form-group {
-                position: relative;
-                margin: 22px 0;
-            }
-
-            .form-group input {
-                margin: 0;
-                padding: 15px 12px 8px 12px;
-                background: #fafafa;
-            }
-
-            .form-group input:focus {
-                background: #fff;
-            }
-
-            .form-group.password-group input {
-                padding-right: 45px;
-            }
-
-            .form-group label {
-                position: absolute;
-                top: 15px;
-                left: 12px;
-                color: #999;
-                font-size: 14px;
-                transition: all 0.3s ease;
-                pointer-events: none;
-                font-weight: 500;
-            }
-
-            .form-group input:focus+label,
-            .form-group input:not(:placeholder-shown)+label {
-                top: -8px;
-                left: 12px;
-                font-size: 12px;
-                color: #1976D2;
-                font-weight: 600;
-                background: #fafafa;
-                padding: 0 4px;
-                transition: all 0.3s ease;
-            }
-
-            .form-group input:focus+label {
-                background: #fff;
-            }
-
-            .form-group.password-group .field-icon {
-                position: absolute;
-                right: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                cursor: pointer;
-                color: #999;
-                z-index: 10;
-                transition: color 0.3s ease;
-            }
-
-            .form-group.password-group .field-icon:hover {
-                color: #1976D2;
-            }
-
-            .validation-msg {
-                font-size: 12px;
-                margin-top: 6px;
-                min-height: 18px;
-                transition: all 0.3s ease;
-            }
-        </style>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="{% static 'toast.js' %}"></script>
-        <script>
-            $(document).ready(function () {
-                console.log($('#userName').val(),"ad");
-                
-                let usernameValid = false;
-                let emailValid = false;
-                let passwordValid = false;
-                let confirmPasswordValid = false;
-
-                // Tab switching
-                $(".nav-link").click(function (e) {
-                    e.preventDefault();
-                    const target = $(this).attr("href");
-
-                    $(".nav-link").removeClass("active");
-                    $(this).addClass("active");
-
-                    $(".tab-content").removeClass("show");
-                    $(target).addClass("show");
-
-                    // Reset signup form when switching to signup
-                    if (target === "#signup") {
-                        resetSignupForm();
-                    }
-                });
-
-                function resetSignupForm() {
-                    $("#signupForm")[0].reset();
-                    $("#usernameMsg").text("");
-                    $("#emailMsg").text("");
-                    $("#passwordMsg").text("");
-                    $("#confirmPasswordMsg").text("");
-                    usernameValid = false;
-                    emailValid = false;
-                    passwordValid = false;
-                    confirmPasswordValid = false;
-                    updateSubmitButton();
-                }
-
-                function updateSubmitButton() {
-                    $("#submitBtn").prop("disabled", !(usernameValid && emailValid && passwordValid && confirmPasswordValid));
-                }
-
-                // Username validation
-                $("#signup-username").on("keyup blur", function () {
-                    let username = $(this).val().trim();
-
-                    if (username.length < 4) {
-                        $("#usernameMsg").text("username must be 4 characters or longer").css("color", "red");
-                        usernameValid = false;
-                        updateSubmitButton();
-                        return;
-                    }
-
-                    $.ajax({
-                        url: "/api/check-username/",
-                        type: "GET",
-                        data: { username: username },
-                        success: function (response) {
-                            if (response.exists) {
-                                $("#usernameMsg").text("Username already exists").css("color", "red");
-                                usernameValid = false;
-                            } else {
-                                $("#usernameMsg").text("").css("color", "green");
-                                usernameValid = true;
-                            }
-                            updateSubmitButton();
-                        }
-                    });
-                });
-
-                // Email validation
-                $("#signup-email").on("keyup blur", function () {
-                    const email = $(this).val().trim();
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-                    if (email === "") {
-                        $("#emailMsg").text("");
-                        emailValid = false;
-                        updateSubmitButton();
-                        return;
-                    }
-
-                    if (!emailRegex.test(email)) {
-                        $("#emailMsg").text("Invalid email format").css("color", "red");
-                        emailValid = false;
-                        updateSubmitButton();
-                        return;
-                    }
-
-                    $.ajax({
-                        url: "/api/check-email/",
-                        type: "GET",
-                        data: { email: email },
-                        success: function (response) {
-                            if (response.exists) {
-                                $("#emailMsg").text("Email already exists").css("color", "red");
-                                emailValid = false;
-                            } else {
-                                $("#emailMsg").text("").css("color", "green");
-                                emailValid = true;
-                            }
-                            updateSubmitButton();
-                        }
-                    });
-                });
-
-                // Password validation
-                $("#signup-password").on("keyup blur", function () {
-                    const password = $(this).val();
-
-                    passwordValid =
-                        password.length >= 8 &&
-                        /[A-Z]/.test(password) &&
-                        /[a-z]/.test(password) &&
-                        /\d/.test(password) &&
-                        /[@$!%*?&]/.test(password);
-
-                    if (passwordValid) {
-                        $("#passwordMsg").text("").css("color", "green");
-                    } else {
-                        $("#passwordMsg").text("Min 8 chars, uppercase, lowercase, number & special char").css("color", "red");
-                    }
-
-                    // Re-validate confirm password if it has a value
-                    const confirmPassword = $("#signup-confirm-password").val();
-                    if (confirmPassword) {
-                        if (password === confirmPassword) {
-                            $("#confirmPasswordMsg").text("Passwords match").css("color", "green");
-                            confirmPasswordValid = true;
-                        } else {
-                            $("#confirmPasswordMsg").text("Passwords do not match").css("color", "red");
-                            confirmPasswordValid = false;
-                        }
-                    }
-
-                    updateSubmitButton();
-                });
-
-                // Confirm Password validation
-                $("#signup-confirm-password").on("keyup blur", function () {
-                    const confirmPassword = $(this).val();
-                    const password = $("#signup-password").val();
-
-                    if (confirmPassword === "") {
-                        $("#confirmPasswordMsg").text("");
-                        confirmPasswordValid = false;
-                    } else if (confirmPassword === password) {
-                        $("#confirmPasswordMsg").text("Passwords match").css("color", "green");
-                        confirmPasswordValid = true;
-                    } else {
-                        $("#confirmPasswordMsg").text("Passwords do not match").css("color", "red");
-                        confirmPasswordValid = false;
-                    }
-                    updateSubmitButton();
-                });
-
-                // Toggle password visibility
-                $(".toggle-password").click(function () {
-                    const passwordInput = $(this).closest(".form-group").find("input");
-                    const icon = $(this);
-
-                    if (passwordInput.attr("type") === "password") {
-                        passwordInput.attr("type", "text");
-                        icon.removeClass("fa-eye").addClass("fa-eye-slash");
-                    } else {
-                        passwordInput.attr("type", "password");
-                        icon.removeClass("fa-eye-slash").addClass("fa-eye");
-                    }
-                });
-
-                // Handle Server Messages via Toast
-                let serverMsg = "{{ msg|default:'' }}";
-                let serverError = "{{ error|default:'' }}";
-                let status = "{{ status|default:'info' }}";
-                let activeTab = "{{ active_tab|default:'login' }}";
-
-                if (activeTab === 'signup') {
-                    $('a[href="#signup"]').click();
-                } else {
-                    $('a[href="#login"]').click();
-                }
-
-                if (serverError) showToast(serverError, 'error');
-                if (serverMsg) {
-                    showToast(serverMsg, status === 'success' ? 'success' : 'error');
-                }
-            });
-        </script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        <link
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap"
-            rel="stylesheet">
-    </head>
-
-    <body>
-        <div class="container">
-            <div class="left-section">
-                <div class="login-box">
-                    <!-- Tab Navigation -->
-                    <ul class="nav-tabs">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#login">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#signup">Sign Up</a>
-                        </li>
-                    </ul>
-
-                    <!-- Login Tab -->
-                    <div id="login" class="tab-content show">
-                        <form method="post" action="login">
-                            {% csrf_token %}
-
-                            <div class="form-group">
-                                <input type="text" id="userName" name="username" placeholder=" " value="{{username}}" required>
-                                <label>Username</label>
-                            </div>
-
-                            <div class="form-group password-group">
-                                <input type="password" id="password" name="password" placeholder=" "
-                                    required>
-                                <label>Password</label>
-                                <span class="fa fa-fw fa-eye field-icon toggle-password"></span>
-                            </div>
-
-                            <button type="submit">Login</button>
-                        </form>
-                    </div>
-
-                    <!-- Sign Up Tab -->
-                    <div id="signup" class="tab-content">
-                        <form method="post" action="register_user" id="signupForm">
-                            {% csrf_token %}
-
-                            <div class="form-group">
-                                <input id="signup-username" type="text" name="username" placeholder=" " autocomplete="off" value="{{ signup_username|default:'' }}"
-                                    required>
-                                <label>Username</label>
-                                <div id="usernameMsg" class="validation-msg"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <input id="signup-email" type="email" name="email" placeholder=" " value="{{ signup_email|default:'' }}" required>
-                                <label>Email</label>
-                                <div id="emailMsg" class="validation-msg"></div>
-                            </div>
-
-                            <div class="form-group password-group">
-                                <input id="signup-password" type="password" name="password" placeholder=" "
-                                    autocomplete="new-password" required>
-                                <label>Password</label>
-                                <span class="fa fa-fw fa-eye field-icon toggle-password"></span>
-                                <div id="passwordMsg" class="validation-msg"></div>
-                            </div>
-
-                            <div class="form-group password-group">
-                                <input id="signup-confirm-password" type="password" name="confirm_password" placeholder=" "
-                                    autocomplete="new-password" required>
-                                <label>Confirm Password</label>
-                                <span class="fa fa-fw fa-eye field-icon toggle-password"></span>
-                                <div id="confirmPasswordMsg" class="validation-msg"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <input id="signup-fullname" type="text" name="fullname" placeholder=" " value="{{ signup_fullname|default:'' }}" required>
-                                <label>Full Name</label>
-                            </div>
-
-                            <button type="submit" id="submitBtn">Register</button>
-                        </form>
-                    </div>
+        });
+    </script>
+    <script src="{% static 'index.js' %}"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="left-section">
+            <div class="login-box">
+                <!-- Tab Navigation -->
+                <ul class="nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#signup">Sign Up</a>
+                    </li>
+                </ul>
+
+                <!-- Login Tab -->
+                <div id="login" class="tab-content show">
+                    <form method="post" action="login">
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <input type="text" id="userName" name="username" placeholder=" " value="{{username}}"
+                                required>
+                            <label>Username</label>
+                        </div>
+
+                        <div class="form-group password-group">
+                            <input type="password" id="password" name="password" placeholder=" " required>
+                            <label>Password</label>
+                            <span class="fa fa-fw fa-eye field-icon toggle-password" style="
+    top: 20px;"></span>
+                        </div>
+
+                        <button type="submit">Login</button>
+                    </form>
                 </div>
-            </div>
 
-            <div class="right-section">
-                <div
-                    style="background: white; padding: 30px; border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px;">
-                    <img src="https://d1s24u4ln0wd0i.cloudfront.net/website/new_ecom_asset/logo1.webp" alt="Medkart Logo"
-                        style="max-width: 180px; height: auto;">
+                <!-- Sign Up Tab -->
+                <div id="signup" class="tab-content">
+                    <form method="post" action="register_user" id="signupForm">
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <input id="signup-username" type="text" name="username" placeholder=" " autocomplete="off"
+                                value="{{ signup_username|default:'' }}" required>
+                            <label>Username</label>
+                            <div id="usernameMsg" class="validation-msg"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <input id="signup-email" type="email" name="email" placeholder=" "
+                                value="{{ signup_email|default:'' }}" required>
+                            <label>Email</label>
+                            <div id="emailMsg" class="validation-msg"></div>
+                        </div>
+
+                        <div class="form-group password-group">
+                            <input id="signup-password" type="password" name="password" placeholder=" "
+                                autocomplete="new-password" required>
+                            <label>Password</label>
+                            <span class="fa fa-fw fa-eye field-icon toggle-password"></span>
+                            <div id="passwordMsg" class="validation-msg"></div>
+                        </div>
+
+                        <div class="form-group password-group">
+                            <input id="signup-confirm-password" type="password" name="confirm_password" placeholder=" "
+                                autocomplete="new-password" required>
+                            <label>Confirm Password</label>
+                            <span class="fa fa-fw fa-eye field-icon toggle-password"></span>
+                            <div id="confirmPasswordMsg" class="validation-msg"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <input id="signup-fullname" type="text" name="fullname" placeholder=" "
+                                value="{{ signup_fullname|default:'' }}" required>
+                            <label>Full Name</label>
+                        </div>
+
+                        <button type="submit" id="submitBtn">Register</button>
+                    </form>
                 </div>
-                <h2
-                    style="color: rgba(255,255,255,0.9); font-size: 28px; margin-bottom: 40px; font-weight: 300; font-family: 'Playfair Display', serif; letter-spacing: 1px;">
-                    Task Management System</h2>
-                <p
-                    style="text-align: center; color: rgba(255,255,255,0.85); font-size: 16px; max-width: 500px; line-height: 1.8;">
-                    Manage your projects and tasks efficiently. Track progress, collaborate with your team, and stay
-                    organized with our powerful task management system.
-                </p>
             </div>
         </div>
 
-    </body>
+        <div class="right-section">
+            <div
+                style="background: white; padding: 30px; border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px;">
+                <img src="https://d1s24u4ln0wd0i.cloudfront.net/website/new_ecom_asset/logo1.webp" alt="Medkart Logo"
+                    style="max-width: 180px; height: auto;">
+            </div>
+            <h2
+                style="color: rgba(255,255,255,0.9); font-size: 28px; margin-bottom: 40px; font-weight: 300; font-family: 'Playfair Display', serif; letter-spacing: 1px;">
+                Task Management System</h2>
+            <p
+                style="text-align: center; color: rgba(255,255,255,0.85); font-size: 16px; max-width: 500px; line-height: 1.8;">
+                Manage your projects and tasks efficiently. Track progress, collaborate with your team, and stay
+                organized with our powerful task management system.
+            </p>
+        </div>
+    </div>
 
-    </html>
+</body>
+
+</html>

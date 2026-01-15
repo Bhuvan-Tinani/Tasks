@@ -1,8 +1,3 @@
-/**
- * Displays a toast notification.
- * @param {string} message - The message to display.
- * @param {string} type - The type of toast ('success', 'error', 'info', 'warning').
- */
 function showToast(message, type = 'info') {
     
     let container = document.getElementById('toast-container');
@@ -47,12 +42,10 @@ function showToast(message, type = 'info') {
 
     container.appendChild(toast);
 
-    // Fade in
     requestAnimationFrame(() => {
         toast.style.opacity = '1';
     });
 
-    // Remove after 3 seconds
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.addEventListener('transitionend', () => {
